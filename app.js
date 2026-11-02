@@ -28,7 +28,7 @@
   });
   function normalize(s) {
     s = s && typeof s === 'object' ? s : {};
-    s.settings = Object.assign({ sound: true }, s.settings || {});
+    s.settings = Object.assign({ sound: true, voice: '', rate: 0.92 }, s.settings || {});
     s.profiles = s.profiles || {};
     Object.keys(Games.PROFILES).forEach((id) => {
       s.profiles[id] = Object.assign(defaultProfile(id), s.profiles[id] || {});
@@ -112,6 +112,24 @@
   function loadVoices() { if (hasSpeech) voices = window.speechSynthesis.getVoices(); }
   loadVoices();
   if (hasSpeech) window.speechSynthesis.onvoiceschanged = loadVoices;
+  function voiceScore(v) {
+    const n = v.name || '';
+    let s = 0;
+    if (/natural|neural|online/i.test(n)) s += 100;
+    if (/premium|enhanced|mejorada|siri/i.test(n)) s += 80;
+    if (/google/i.test(n)) s += 30;
+    if (/elena|alvaro|álvaro|paulina|m[oó]nica|marisol|helena|laura|luc[ií]a|sabina|jorge|diego|ang[eé]lica|mia/i.test(n)) s += 20;
+    if (/^es[-_]ES/i.test(v.lang)) s += 5;
+    return s;
+  }
+  const esVoices = () => voices.filter((x) => /^es/i.test(x.lang));
+  function bestVoice() {
+    if (S.settings.voice) {
+      const f = voices.find((x) => x.name === S.settings.voice);
+      if (f) return f;
+    }
+    return esVoices().sort((a, b) => voiceScore(b) - voiceScore(a))[0] || null;
+  }
   function speak(text) {
     if (!S.settings.sound || !hasSpeech || !text) return;
     try {
@@ -119,10 +137,10 @@
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(clean);
       u.lang = 'es-ES';
-      u.rate = 0.88;
-      u.pitch = 1.1;
-      const v = voices.find((x) => /^es[-_]ES/i.test(x.lang)) || voices.find((x) => /^es/i.test(x.lang));
-      if (v) u.voice = v;
+      u.rate = S.settings.rate || 0.92;
+      u.pitch = 1.05;
+      const v = bestVoice();
+      if (v) { u.voice = v; u.lang = v.lang; }
       window.speechSynthesis.speak(u);
     } catch (e) { /* sin voz */ }
   }
@@ -444,6 +462,8 @@
 
   function renderParent() {
     const y = window.scrollY;
+    loadVoices();
+    const vs = esVoices();
     setTheme('home');
     const standalone = window.navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
     const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -474,6 +494,10 @@
         <label>Restaurar desde un código</label><textarea id="bk-in" placeholder="Pega aquí el código"></textarea>
         <div class="row"><button class="btn small alt" data-act="p-restore">♻️ Restaurar</button></div></div>
       <div class="card"><h2>⚙️ Otros ajustes</h2>
+        <label>Voz</label><select data-act="p-voice"><option value="">Automática (la más natural)</option>${vs.map((v) => `<option value="${esc(v.name)}" ${S.settings.voice === v.name ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>
+        <label>Velocidad de la voz</label><select data-act="p-rate">${[[0.8, 'Lenta'], [0.92, 'Normal'], [1.05, 'Rápida']].map(([v, l]) => `<option value="${v}" ${Math.abs((S.settings.rate || 0.92) - v) < 0.01 ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        <div class="row"><button class="btn small" data-act="p-voice-test">▶ Probar voz</button></div>
+        <p class="note">${vs.length ? 'Voz que se usa ahora: <b>' + esc((bestVoice() || {}).name || 'ninguna') + '</b>' : 'Este dispositivo no tiene voces en español instaladas.'}</p>
         <div class="row"><button class="btn small alt" data-act="p-sound">${S.settings.sound ? '🔊 Sonido y voz: activado' : '🔇 Sonido y voz: desactivado'}</button></div>
         ${standalone ? '<p class="note">✅ Estás usando la app instalada.</p>' : (isIOS ? '<div class="warn">📱 En iPhone: abre esta web en <b>Safari</b>, pulsa el botón Compartir y elige <b>"Añadir a pantalla de inicio"</b>. Así se queda instalada y el progreso no se borra por falta de uso.</div>' : '<p class="note">💻 En Windows (Edge o Chrome) puedes instalarla desde el icono de instalar de la barra de direcciones.</p>')}
       </div></div>`;
@@ -539,6 +563,7 @@
         }
         break;
       case 'p-sound': S.settings.sound = !S.settings.sound; save(); renderParent(); break;
+      case 'p-voice-test': speak('¡Hola! Vamos a jugar con los animales y a cumplir misiones.'); break;
       case 'p-copy': {
         const ta = document.getElementById('bk-out');
         ta.select();
@@ -566,6 +591,17 @@
   $app.addEventListener('change', (e) => {
     const t = e.target;
     if (t.dataset.act === 'p-limit') { P(t.dataset.id).limit = parseInt(t.value, 10); save(); renderParent(); }
+    if (t.dataset.act === 'p-voice') {
+      S.settings.voice = t.value;
+      save();
+      renderParent();
+      speak('¡Hola! Así suena esta voz.');
+    }
+    if (t.dataset.act === 'p-rate') {
+      S.settings.rate = parseFloat(t.value);
+      save();
+      speak('¡Hola! Así suena esta velocidad.');
+    }
     if (t.dataset.act === 'p-name') {
       const v = t.value.trim().slice(0, 14);
       P(t.dataset.id).name = v || Games.PROFILES[t.dataset.id].defaultName;
