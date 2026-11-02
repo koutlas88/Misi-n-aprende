@@ -66,6 +66,11 @@ const Games = (function () {
     { n: 'corazón', art: 'el', svg: (c) => `<path d="M50 88 C10 58 6 30 28 20 C40 15 50 24 50 32 C50 24 60 15 72 20 C94 30 90 58 50 88Z" fill="${c}"/>` },
     { n: 'rectángulo', art: 'el', svg: (c) => `<rect x="4" y="26" width="92" height="48" fill="${c}"/>` },
   ];
+  const SORT_SETS = [
+    { key: 'animales', label: 'Animales', e: '🐾', items: ['🐶', '🐱', '🐰', '🐮', '🐷', '🐸'] },
+    { key: 'frutas', label: 'Frutas', e: '🧺', items: ['🍎', '🍌', '🍓', '🍐', '🍊', '🍇'] },
+    { key: 'transportes', label: 'Transportes', e: '🛣️', items: ['🚗', '🚌', '🚲', '✈️', '🚂', '🚁'] },
+  ];
 
   /* ---------- Utilidades de opciones ---------- */
   function numOptions(correct, extras, o) {
@@ -86,7 +91,7 @@ const Games = (function () {
     return shuffle(set).map((v) => ({ html: String(v), value: v, correct: v === correct }));
   }
 
-  /* ---------- Juegos para la peque (4 años) ---------- */
+  /* ---------- Juegos de pulsar para la peque (4 años) ---------- */
   function countQ(max) {
     const n = rnd(1, max);
     const a = pick(ANIMALS);
@@ -199,7 +204,137 @@ const Games = (function () {
     };
   }
 
-  /* ---------- Juegos para el explorador (7 años) ---------- */
+  /* ---------- Juegos de arrastrar ---------- */
+  function dragCountQ(max) {
+    const n = rnd(1, max);
+    const f = pick(FRUITS);
+    const total = Math.min(10, n + rnd(2, 4));
+    const prompt = `Mete ${n} ${n === 1 ? f.sg : f.pl} en el cesto`;
+    return { type: 'drag-count', tag: 'contar', n, e: f.e, total, prompt, speak: `Arrastra ${n} ${n === 1 ? f.sg : f.pl} al cesto` };
+  }
+
+  function dragSortQ() {
+    const [a, b] = sample(SORT_SETS, 2);
+    const items = shuffle([
+      ...sample(a.items, rnd(2, 3)).map((e) => ({ e, zone: a.key })),
+      ...sample(b.items, rnd(2, 3)).map((e) => ({ e, zone: b.key })),
+    ]);
+    return {
+      type: 'drag-sort',
+      tag: 'clasificar',
+      prompt: 'Lleva cada dibujo a su grupo',
+      speak: `Lleva cada dibujo a su grupo: ${a.label.toLowerCase()} o ${b.label.toLowerCase()}`,
+      zones: [{ key: a.key, label: a.label, e: a.e }, { key: b.key, label: b.label, e: b.e }],
+      items,
+    };
+  }
+
+  function dragShapeQ() {
+    const shapes = sample(SHAPES.filter((s) => s.n !== 'rectángulo'), 3);
+    const cols = sample(COLORS, 3);
+    const items = shapes.map((s, i) => ({
+      id: i,
+      sil: `<svg viewBox="0 0 100 100" class="shape">${s.svg('#d6d9e6')}</svg>`,
+      tok: `<svg viewBox="0 0 100 100" class="shape">${s.svg(cols[i].h)}</svg>`,
+    }));
+    return {
+      type: 'drag-shape',
+      tag: 'formas',
+      prompt: 'Pon cada forma en su hueco',
+      speak: 'Arrastra cada forma a su hueco',
+      holes: shuffle(items),
+      tokens: shuffle(items),
+    };
+  }
+
+  function dragOrderQ(max, desc) {
+    const nums = sample(Array.from({ length: max }, (_, i) => i + 1), 4);
+    const sorted = nums.slice().sort((a, b) => (desc ? b - a : a - b));
+    return {
+      type: 'drag-order',
+      tag: 'orden',
+      prompt: desc ? 'Ordena de MAYOR a MENOR' : 'Ordena de MENOR a MAYOR',
+      speak: desc ? 'Ordena los números de mayor a menor' : 'Ordena los números de menor a mayor',
+      nums,
+      sorted,
+      desc,
+    };
+  }
+
+  /* ---------- Juegos de unir con líneas ---------- */
+  function connectNumGroupQ(max, pairs) {
+    const nums = sample(Array.from({ length: max }, (_, i) => i + 1), pairs).sort((a, b) => a - b);
+    const animals = sample(ANIMALS, pairs);
+    return {
+      type: 'connect',
+      tag: 'unir-numeros',
+      prompt: 'Une cada número con su grupo',
+      speak: 'Une cada número con el grupo que tiene esa cantidad',
+      left: nums.map((n, i) => ({ id: i, html: `<span class="cnum">${n}</span>` })),
+      right: shuffle(nums.map((n, i) => ({ id: i, html: `<span class="cgroup">${animals[i].e.repeat(n)}</span>` }))),
+    };
+  }
+
+  function connectShadowQ(pairs) {
+    const an = sample(ANIMALS, pairs);
+    return {
+      type: 'connect',
+      tag: 'unir-sombras',
+      prompt: 'Une cada animal con su sombra',
+      speak: 'Une cada animal con su sombra',
+      left: an.map((a, i) => ({ id: i, html: `<span class="cemoji">${a.e}</span>` })),
+      right: shuffle(an.map((a, i) => ({ id: i, html: `<span class="cemoji shadow">${a.e}</span>` }))),
+    };
+  }
+
+  function connectMathQ(max, pairs, tag) {
+    const used = new Set();
+    const exprs = [];
+    for (let t = 0; t < 200 && exprs.length < pairs; t++) {
+      let expr, res;
+      if (Math.random() < 0.5) {
+        const a = rnd(2, max - 2);
+        const b = rnd(2, max - a);
+        expr = `${a} + ${b}`;
+        res = a + b;
+      } else {
+        const a = rnd(6, max);
+        const b = rnd(2, a - 2);
+        expr = `${a} − ${b}`;
+        res = a - b;
+      }
+      if (!used.has(res)) { used.add(res); exprs.push({ expr, res }); }
+    }
+    return {
+      type: 'connect',
+      tag,
+      prompt: 'Une cada cuenta con su resultado',
+      speak: 'Une cada cuenta con su resultado',
+      left: exprs.map((x, i) => ({ id: i, html: `<span class="cexpr">${x.expr}</span>` })),
+      right: shuffle(exprs.map((x, i) => ({ id: i, html: `<span class="cexpr">${x.res}</span>` }))),
+    };
+  }
+
+  function connectTablesQ(list, pairs) {
+    const used = new Set();
+    const exprs = [];
+    for (let t = 0; t < 200 && exprs.length < pairs; t++) {
+      const a = pick(list);
+      const b = rnd(2, 10);
+      const res = a * b;
+      if (!used.has(res)) { used.add(res); exprs.push({ expr: `${a} × ${b}`, res }); }
+    }
+    return {
+      type: 'connect',
+      tag: 'unir-tablas',
+      prompt: 'Une cada tabla con su resultado',
+      speak: 'Une cada multiplicación con su resultado',
+      left: exprs.map((x, i) => ({ id: i, html: `<span class="cexpr">${x.expr}</span>` })),
+      right: shuffle(exprs.map((x, i) => ({ id: i, html: `<span class="cexpr">${x.res}</span>` }))),
+    };
+  }
+
+  /* ---------- Juegos de pulsar para el explorador (7 años) ---------- */
   function sumQ(max, carry) {
     let a, b;
     for (let t = 0; t < 300; t++) {
@@ -348,15 +483,15 @@ const Games = (function () {
     { e: '🐟', add: (a, b) => `El gato pesca ${a} peces y luego pesca ${b} más. ¿Cuántos peces tiene?`, sub: (a, b) => `El gato tenía ${a} peces. Se le escaparon ${b}. ¿Cuántos peces le quedan?` },
     { e: '🥕', add: (a, b) => `El conejo tiene ${a} zanahorias y encuentra ${b} más en el huerto. ¿Cuántas zanahorias tiene ahora?`, sub: (a, b) => `El conejo tenía ${a} zanahorias y se come ${b}. ¿Cuántas zanahorias le quedan?` },
     { e: '🐝', add: (a, b) => `Hay ${a} abejas en una flor. Llegan ${b} abejas más. ¿Cuántas abejas hay ahora?`, sub: (a, b) => `Había ${a} abejas en una flor. Se van volando ${b}. ¿Cuántas abejas quedan?` },
-    { e: '⚡', add: (a, b) => `El Capitán Lobo tiene ${a} rayos de energía y consigue ${b} más. ¿Cuántos rayos tiene ahora?`, sub: (a, b) => `El Capitán Lobo tenía ${a} rayos de energía y usa ${b} para salvar la ciudad. ¿Cuántos rayos le quedan?` },
-    { e: '💎', add: (a, b) => `Águila Veloz encuentra ${a} gemas en una cueva y ${b} en otra. ¿Cuántas gemas tiene en total?`, sub: (a, b) => `Águila Veloz tenía ${a} gemas y pierde ${b} en una tormenta. ¿Cuántas gemas le quedan?` },
+    { e: '🥚', add: (a, b) => `Rexi el dinosaurio tiene ${a} huevos en su nido y encuentra ${b} más. ¿Cuántos huevos tiene ahora?`, sub: (a, b) => `Rexi el dinosaurio tenía ${a} huevos y regala ${b} a su amiga Tric. ¿Cuántos huevos le quedan?` },
+    { e: '🌿', add: (a, b) => `Tric el dinosaurio come ${a} hojas por la mañana y ${b} por la tarde. ¿Cuántas hojas come en total?`, sub: (a, b) => `Tric el dinosaurio tenía ${a} hojas y se come ${b}. ¿Cuántas hojas le quedan?` },
     { e: '⭐', add: (a, b) => `Luna tiene ${a} estrellas de premio y gana ${b} más. ¿Cuántas estrellas tiene ahora?`, sub: (a, b) => `Luna tenía ${a} estrellas de premio y regala ${b} a su hermano. ¿Cuántas estrellas le quedan?` },
   ];
   const CMP = [
     { e: '🐦', f: (a, b) => `En el árbol hay ${a} pájaros y en el suelo hay ${b}. ¿Cuántos pájaros más hay en el árbol que en el suelo?` },
     { e: '🌟', f: (a, b) => `Luna tiene ${a} pegatinas y Leo tiene ${b}. ¿Cuántas pegatinas más tiene Luna que Leo?` },
     { e: '🐮', f: (a, b) => `En la granja hay ${a} vacas y ${b} ovejas. ¿Cuántas vacas más que ovejas hay?` },
-    { e: '🏙️', f: (a, b) => `El Capitán Lobo salvó a ${a} personas y Águila Veloz salvó a ${b}. ¿Cuántas personas más salvó el Capitán Lobo?` },
+    { e: '🦴', f: (a, b) => `Rexi encontró ${a} huesos de dinosaurio y Tric encontró ${b}. ¿Cuántos huesos más encontró Rexi?` },
   ];
   const TOT = [
     { e: '🦁', f: (a, b) => `En el zoo hay ${a} leones y ${b} tigres. ¿Cuántos felinos hay en total?` },
@@ -365,7 +500,7 @@ const Games = (function () {
   ];
   const MUL = [
     { e: '🍎', f: (a, b) => `Hay ${a} cajas y en cada caja hay ${b} manzanas. ¿Cuántas manzanas hay en total?` },
-    { e: '🪙', f: (a, b) => `El Capitán Lobo tiene ${a} bolsas con ${b} monedas en cada una. ¿Cuántas monedas tiene en total?` },
+    { e: '🥚', f: (a, b) => `Rexi tiene ${a} nidos con ${b} huevos en cada uno. ¿Cuántos huevos tiene en total?` },
   ];
   const OPHINT = {
     add: 'Juntar o añadir cosas = SUMAR ➕',
@@ -452,61 +587,66 @@ const Games = (function () {
 
   /* ---------- Perfiles y misiones ---------- */
   const PROFILES = {
-    peque: { id: 'peque', defaultName: 'Peque', emoji: '🐮', world: 'La Granja Mágica', age: 4 },
-    explorador: { id: 'explorador', defaultName: 'Explorador', emoji: '🐺', world: 'La Liga de los Héroes', age: 7 },
+    peque: { id: 'peque', defaultName: 'Peque', emoji: '🦄', world: 'El Reino del Unicornio', age: 4 },
+    explorador: { id: 'explorador', defaultName: 'Explorador', emoji: '🦖', world: 'La Isla de los Dinos', age: 7 },
   };
 
   const MISSIONS = {
     peque: [
-      { id: 'p1', title: 'Cuenta los animales', icon: '🐮', rounds: 5, gen: () => countQ(3) },
-      { id: 'p2', title: 'Busca el grupo', icon: '🐷', rounds: 5, gen: () => groupQ(3) },
-      { id: 'p3', title: 'Los colores', icon: '🌈', rounds: 5, gen: () => colorQ(4) },
-      { id: 'p4', title: 'Cuenta hasta 5', icon: '🐔', rounds: 5, gen: () => countQ(5) },
-      { id: 'p5', title: 'Junta las frutas', icon: '🍎', rounds: 5, gen: () => sumVisualQ(4) },
-      { id: 'p6', title: 'Parejas de animales', icon: '🧠', kind: 'memory', pairs: 3 },
-      { id: 'p7', title: 'Las formas', icon: '🔺', rounds: 5, gen: () => shapeQ() },
-      { id: 'p8', title: 'Grupos hasta 5', icon: '🐑', rounds: 5, gen: () => groupQ(5) },
-      { id: 'p9', title: 'Más frutas', icon: '🍌', rounds: 5, gen: () => sumVisualQ(6) },
-      { id: 'p10', title: 'Parejas grandes', icon: '🃏', kind: 'memory', pairs: 4 },
-      { id: 'p11', title: 'Cuenta hasta 10', icon: '🐘', rounds: 5, gen: () => countQ(10) },
-      { id: 'p12', title: 'Fiesta de frutas', icon: '🍓', rounds: 5, gen: () => sumVisualQ(10) },
+      { id: 'p1', title: 'Cuenta los animales', icon: '🐮', sticker: '🦄', rounds: 5, gen: () => countQ(3) },
+      { id: 'p2', title: 'Busca el grupo', icon: '🐷', sticker: '🐮', rounds: 5, gen: () => groupQ(3) },
+      { id: 'p13', title: 'Mete en el cesto', icon: '🧺', sticker: '🐷', rounds: 4, gen: () => dragCountQ(3) },
+      { id: 'p3', title: 'Los colores', icon: '🌈', sticker: '🐔', rounds: 5, gen: () => colorQ(4) },
+      { id: 'p14', title: 'Une números y animales', icon: '🔗', sticker: '🐑', rounds: 3, gen: () => connectNumGroupQ(3, 3) },
+      { id: 'p4', title: 'Cuenta hasta 5', icon: '🐔', sticker: '🐴', rounds: 5, gen: () => countQ(5) },
+      { id: 'p5', title: 'Junta las frutas', icon: '🍎', sticker: '🐶', rounds: 5, gen: () => sumVisualQ(4) },
+      { id: 'p6', title: 'Parejas de animales', icon: '🧠', sticker: '🐱', kind: 'memory', pairs: 3 },
+      { id: 'p15', title: 'Cada cosa en su sitio', icon: '📦', sticker: '🐰', rounds: 3, gen: () => dragSortQ() },
+      { id: 'p7', title: 'Las formas', icon: '🔺', sticker: '🦆', rounds: 5, gen: () => shapeQ() },
+      { id: 'p16', title: 'Une las sombras', icon: '🌑', sticker: '🐸', rounds: 3, gen: () => connectShadowQ(3) },
+      { id: 'p17', title: 'Cesto grande', icon: '🧺', sticker: '🐘', rounds: 4, gen: () => dragCountQ(6) },
+      { id: 'p18', title: 'Encaja las formas', icon: '🧩', sticker: '🦁', rounds: 3, gen: () => dragShapeQ() },
+      { id: 'p8', title: 'Grupos hasta 5', icon: '🐑', sticker: '🐒', rounds: 5, gen: () => groupQ(5) },
+      { id: 'p9', title: 'Más frutas', icon: '🍌', sticker: '🐢', rounds: 5, gen: () => sumVisualQ(6) },
+      { id: 'p10', title: 'Parejas grandes', icon: '🃏', sticker: '🐻', kind: 'memory', pairs: 4 },
+      { id: 'p11', title: 'Cuenta hasta 10', icon: '🐘', sticker: '🦒', rounds: 5, gen: () => countQ(10) },
+      { id: 'p12', title: 'Fiesta de frutas', icon: '🍓', sticker: '🌈', rounds: 5, gen: () => sumVisualQ(10) },
     ],
     explorador: [
-      { id: 'h1', title: 'Sumas hasta 20', icon: '➕', rounds: 6, gen: () => sumQ(20, false) },
-      { id: 'h2', title: 'Restas hasta 20', icon: '➖', rounds: 6, gen: () => subQ(20, false) },
-      { id: 'h3', title: 'Problemas: ¿más o menos?', icon: '🔍', rounds: 4, gen: () => problemQ(1) },
-      { id: 'h4', title: 'El número escondido', icon: '🕵️', rounds: 6, gen: () => missingQ(20) },
-      { id: 'h5', title: 'Problemas: ¿qué cuenta?', icon: '🧩', rounds: 4, gen: () => problemQ(2) },
-      { id: 'h6', title: 'Sumas con llevada', icon: '🚀', rounds: 6, gen: () => sumQ(100, true) },
-      { id: 'h7', title: 'Series de números', icon: '🔢', rounds: 6, gen: () => seriesQ([2, 5, 10], false) },
-      { id: 'h8', title: 'Problemas: comparar y total', icon: '⚖️', rounds: 4, gen: () => problemQ(3) },
-      { id: 'h9', title: 'Tablas del 2, 5 y 10', icon: '✖️', rounds: 6, gen: () => tablesQ([2, 5, 10]) },
-      { id: 'h10', title: 'El reloj', icon: '⏰', rounds: 6, gen: () => clockQ(1) },
-      { id: 'h11', title: 'Restas con llevada', icon: '🛡️', rounds: 6, gen: () => subQ(100, true) },
-      { id: 'h12', title: 'Problemas de héroe', icon: '🦸', rounds: 4, gen: () => problemQ(4) },
-      { id: 'h13', title: 'Tablas del 3 y 4', icon: '💎', rounds: 6, gen: () => tablesQ([3, 4]) },
-      { id: 'h14', title: 'El reloj experto', icon: '🕰️', rounds: 6, gen: () => clockQ(2) },
+      { id: 'h1', title: 'Sumas hasta 20', icon: '➕', sticker: '🦖', rounds: 6, gen: () => sumQ(20, false) },
+      { id: 'h2', title: 'Restas hasta 20', icon: '➖', sticker: '🦕', rounds: 6, gen: () => subQ(20, false) },
+      { id: 'h3', title: 'Problemas: ¿más o menos?', icon: '🔍', sticker: '🥚', rounds: 4, gen: () => problemQ(1) },
+      { id: 'h15', title: 'Ordena los números', icon: '📶', sticker: '🌋', rounds: 4, gen: () => dragOrderQ(20, false) },
+      { id: 'h4', title: 'El número escondido', icon: '🕵️', sticker: '🦴', rounds: 6, gen: () => missingQ(20) },
+      { id: 'h5', title: 'Problemas: ¿qué cuenta?', icon: '🧩', sticker: '🌴', rounds: 4, gen: () => problemQ(2) },
+      { id: 'h16', title: 'Une cuentas y resultados', icon: '🔗', sticker: '🪨', rounds: 3, gen: () => connectMathQ(20, 4, 'unir-cuentas') },
+      { id: 'h6', title: 'Sumas con llevada', icon: '🚀', sticker: '🔥', rounds: 6, gen: () => sumQ(100, true) },
+      { id: 'h7', title: 'Series de números', icon: '🔢', sticker: '⭐', rounds: 6, gen: () => seriesQ([2, 5, 10], false) },
+      { id: 'h8', title: 'Problemas: comparar y total', icon: '⚖️', sticker: '🏆', rounds: 4, gen: () => problemQ(3) },
+      { id: 'h9', title: 'Tablas del 2, 5 y 10', icon: '✖️', sticker: '🧭', rounds: 6, gen: () => tablesQ([2, 5, 10]) },
+      { id: 'h10', title: 'El reloj', icon: '⏰', sticker: '🪐', rounds: 6, gen: () => clockQ(1) },
+      { id: 'h17', title: 'Ordena de mayor a menor', icon: '📉', sticker: '👑', rounds: 4, gen: () => dragOrderQ(100, true) },
+      { id: 'h11', title: 'Restas con llevada', icon: '🛡️', sticker: '🐊', rounds: 6, gen: () => subQ(100, true) },
+      { id: 'h12', title: 'Problemas de dino', icon: '🦖', sticker: '🦎', rounds: 4, gen: () => problemQ(4) },
+      { id: 'h18', title: 'Une las tablas', icon: '🔗', sticker: '🌟', rounds: 3, gen: () => connectTablesQ([2, 3, 4, 5, 10], 4) },
+      { id: 'h13', title: 'Tablas del 3 y 4', icon: '💎', sticker: '💎', rounds: 6, gen: () => tablesQ([3, 4]) },
+      { id: 'h14', title: 'El reloj experto', icon: '🕰️', sticker: '🚀', rounds: 6, gen: () => clockQ(2) },
     ],
-  };
-
-  const STICKERS = {
-    peque: ['🐮', '🐷', '🐔', '🐑', '🐴', '🐶', '🐱', '🐰', '🦆', '🐸', '🐘', '🦁'],
-    explorador: ['⚡', '🛡️', '🚀', '🔥', '💎', '🦅', '🐺', '🌟', '🏆', '🦸', '🧭', '🌋', '👑', '🪐'],
   };
 
   const RANKS = {
     peque: [
-      { min: 0, icon: '🌱', title: 'Semillita' },
-      { min: 6, icon: '🌿', title: 'Brote' },
-      { min: 14, icon: '🌻', title: 'Girasol' },
-      { min: 24, icon: '🌳', title: 'Árbol grande' },
+      { min: 0, icon: '✨', title: 'Brillito' },
+      { min: 6, icon: '🌈', title: 'Arcoíris' },
+      { min: 14, icon: '🌸', title: 'Flor mágica' },
+      { min: 26, icon: '🦄', title: 'Unicornio' },
     ],
     explorador: [
-      { min: 0, icon: '🔰', title: 'Aprendiz' },
-      { min: 6, icon: '🛡️', title: 'Cadete' },
-      { min: 14, icon: '⚡', title: 'Guardián' },
-      { min: 24, icon: '🚀', title: 'Comandante' },
-      { min: 36, icon: '🐺', title: 'Capitán Lobo' },
+      { min: 0, icon: '🥚', title: 'Huevito' },
+      { min: 6, icon: '🦎', title: 'Dinito' },
+      { min: 14, icon: '🦕', title: 'Dino joven' },
+      { min: 26, icon: '🦖', title: 'Dino fuerte' },
+      { min: 40, icon: '👑', title: 'Rey de los dinos' },
     ],
   };
 
@@ -516,9 +656,15 @@ const Games = (function () {
     colores: 'Colores',
     formas: 'Formas',
     'sumas-visual': 'Juntar cantidades',
+    clasificar: 'Clasificar y agrupar',
+    'unir-numeros': 'Unir número y cantidad',
+    'unir-sombras': 'Unir animales y sombras',
     sumas: 'Sumas',
     restas: 'Restas',
     'sumas-faltantes': 'Número escondido (sumas y restas)',
+    orden: 'Ordenar números',
+    'unir-cuentas': 'Unir cuentas y resultados',
+    'unir-tablas': 'Unir tablas y resultados',
     tablas: 'Tablas de multiplicar',
     series: 'Series de números',
     reloj: 'Reloj',
@@ -527,7 +673,7 @@ const Games = (function () {
     'prob-resultado': 'Problemas: calcular el resultado',
   };
 
-  return { PROFILES, MISSIONS, STICKERS, RANKS, SKILL_NAMES, ANIMALS, rnd, pick, shuffle, sample };
+  return { PROFILES, MISSIONS, RANKS, SKILL_NAMES, ANIMALS, rnd, pick, shuffle, sample };
 })();
 
 if (typeof module !== 'undefined') module.exports = Games;

@@ -177,6 +177,60 @@
     }
   }
 
+  /* ---------- Mascotas (dibujadas con SVG, animadas con CSS) ---------- */
+  const UNICORN = `<svg viewBox="0 0 200 210" class="mascot-svg" aria-hidden="true">
+    <path d="M146 168 C186 158 192 192 168 202 C176 188 160 184 146 186Z" fill="#ff7eb6"/>
+    <path d="M150 178 C176 176 182 192 168 199" stroke="#b983ff" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <rect x="68" y="176" width="20" height="28" rx="10" fill="#fff" stroke="#7a4fa3" stroke-width="4"/>
+    <rect x="112" y="176" width="20" height="28" rx="10" fill="#fff" stroke="#7a4fa3" stroke-width="4"/>
+    <ellipse cx="100" cy="158" rx="50" ry="34" fill="#fff" stroke="#7a4fa3" stroke-width="4"/>
+    <circle cx="52" cy="76" r="16" fill="#ff7eb6"/><circle cx="46" cy="100" r="14" fill="#b983ff"/><circle cx="54" cy="123" r="12" fill="#6ec6ff"/>
+    <circle cx="148" cy="76" r="16" fill="#ff7eb6"/><circle cx="154" cy="100" r="14" fill="#b983ff"/><circle cx="146" cy="123" r="12" fill="#6ec6ff"/>
+    <path d="M60 54 L68 22 L92 46Z" fill="#fff" stroke="#7a4fa3" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M66 46 L70 32 L80 44Z" fill="#ffb3d1"/>
+    <path d="M140 54 L132 22 L108 46Z" fill="#fff" stroke="#7a4fa3" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M134 46 L130 32 L120 44Z" fill="#ffb3d1"/>
+    <circle cx="100" cy="98" r="48" fill="#fff" stroke="#7a4fa3" stroke-width="4"/>
+    <circle cx="80" cy="58" r="12" fill="#ff7eb6"/><circle cx="120" cy="58" r="12" fill="#b983ff"/><circle cx="100" cy="64" r="10" fill="#6ec6ff"/>
+    <path d="M100 2 L88 52 L112 52Z" fill="#ffd23f" stroke="#e0a800" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M94 26 L106 28 M91 40 L109 42" stroke="#e0a800" stroke-width="3"/>
+    <g class="eo"><ellipse cx="80" cy="100" rx="7" ry="9" fill="#3b2a55"/><ellipse cx="120" cy="100" rx="7" ry="9" fill="#3b2a55"/><circle cx="82" cy="96" r="2.6" fill="#fff"/><circle cx="122" cy="96" r="2.6" fill="#fff"/></g>
+    <g class="eh"><path d="M71 102 q9 -11 18 0" stroke="#3b2a55" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M111 102 q9 -11 18 0" stroke="#3b2a55" stroke-width="4" fill="none" stroke-linecap="round"/></g>
+    <circle cx="66" cy="114" r="8" fill="#ffb3d1" opacity=".75"/><circle cx="134" cy="114" r="8" fill="#ffb3d1" opacity=".75"/>
+    <path class="mc" d="M92 120 q8 8 16 0" stroke="#7a4fa3" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path class="mo" d="M90 118 q10 18 20 0Z" fill="#c2455f"/>
+  </svg>`;
+  const DINO = `<svg viewBox="0 0 200 210" class="mascot-svg" aria-hidden="true">
+    <path d="M146 172 C192 178 198 150 186 132 C182 156 164 158 146 154Z" fill="#4fae5b" stroke="#2f7d3a" stroke-width="4" stroke-linejoin="round"/>
+    <ellipse cx="78" cy="196" rx="22" ry="12" fill="#4fae5b" stroke="#2f7d3a" stroke-width="4"/>
+    <ellipse cx="122" cy="196" rx="22" ry="12" fill="#4fae5b" stroke="#2f7d3a" stroke-width="4"/>
+    <ellipse cx="100" cy="158" rx="52" ry="42" fill="#5dbb63" stroke="#2f7d3a" stroke-width="4"/>
+    <ellipse cx="100" cy="168" rx="32" ry="28" fill="#d6f5b8"/>
+    <circle cx="70" cy="142" r="7" fill="#4aa456"/><circle cx="132" cy="146" r="8" fill="#4aa456"/><circle cx="118" cy="132" r="5" fill="#4aa456"/>
+    <ellipse cx="50" cy="164" rx="9" ry="14" fill="#5dbb63" stroke="#2f7d3a" stroke-width="4" transform="rotate(20 50 164)"/>
+    <ellipse cx="150" cy="164" rx="9" ry="14" fill="#5dbb63" stroke="#2f7d3a" stroke-width="4" transform="rotate(-20 150 164)"/>
+    <polygon points="68,56 78,28 90,50" fill="#ff9f43" stroke="#d9731a" stroke-width="3" stroke-linejoin="round"/>
+    <polygon points="90,48 100,18 110,48" fill="#ff9f43" stroke="#d9731a" stroke-width="3" stroke-linejoin="round"/>
+    <polygon points="110,50 122,28 132,56" fill="#ff9f43" stroke="#d9731a" stroke-width="3" stroke-linejoin="round"/>
+    <ellipse cx="100" cy="92" rx="52" ry="44" fill="#5dbb63" stroke="#2f7d3a" stroke-width="4"/>
+    <g class="eo"><circle cx="78" cy="84" r="12" fill="#fff" stroke="#2f7d3a" stroke-width="3"/><circle cx="122" cy="84" r="12" fill="#fff" stroke="#2f7d3a" stroke-width="3"/><circle cx="80" cy="86" r="6.5" fill="#26324f"/><circle cx="120" cy="86" r="6.5" fill="#26324f"/><circle cx="82" cy="83" r="2.3" fill="#fff"/><circle cx="122" cy="83" r="2.3" fill="#fff"/></g>
+    <g class="eh"><path d="M66 88 q12 -14 24 0" stroke="#26324f" stroke-width="4.5" fill="none" stroke-linecap="round"/><path d="M110 88 q12 -14 24 0" stroke="#26324f" stroke-width="4.5" fill="none" stroke-linecap="round"/></g>
+    <circle cx="92" cy="106" r="2.6" fill="#2f7d3a"/><circle cx="108" cy="106" r="2.6" fill="#2f7d3a"/>
+    <circle cx="62" cy="104" r="8" fill="#ff9ec2" opacity=".75"/><circle cx="138" cy="104" r="8" fill="#ff9ec2" opacity=".75"/>
+    <path class="mc" d="M84 114 q16 14 32 0" stroke="#2f7d3a" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path class="mo" d="M82 112 q18 24 36 0Z" fill="#c2455f"/><polygon class="mo" points="88,113 93,113 90.5,119" fill="#fff"/><polygon class="mo" points="107,113 112,113 109.5,119" fill="#fff"/>
+  </svg>`;
+  const mascotHTML = (pid, cls, id) => `<div class="mascot ${cls || 'idle'}"${id ? ` id="${id}"` : ''}>${pid === 'peque' ? UNICORN : DINO}</div>`;
+  const mascotMini = (pid) => `<div class="mascot-mini">${mascotHTML(pid, 'idle', 'mm')}</div>`;
+  function react(mood) {
+    const el = document.getElementById('mm');
+    if (!el) return;
+    el.classList.remove('happy', 'sad');
+    void el.offsetWidth;
+    el.classList.add(mood);
+    setTimeout(() => { if (el) el.classList.remove(mood); }, 900);
+  }
+
   /* ---------- Estado de navegación ---------- */
   let cur = { pid: null };
   let run = null;
@@ -197,12 +251,18 @@
       const pr = Games.PROFILES[id];
       const p = P(id);
       const rk = rank(id);
-      return `<button class="profile ${id}" data-act="profile" data-id="${id}"><span class="em">${pr.emoji}</span><span><b>${esc(p.name)}</b><span>${pr.world}</span><span>${rk.icon} ${rk.title} · ⭐ ${totalStars(id)}</span></span></button>`;
+      return `<button class="profile ${id}" data-act="profile" data-id="${id}"><span class="em">${mascotHTML(id, 'idle')}</span><span><b>${esc(p.name)}</b><span>${pr.world}</span><span>${rk.icon} ${rk.title} · ⭐ ${totalStars(id)}</span></span></button>`;
     }).join('');
     $app.innerHTML = `<div class="home">${header('', '')}<h1>Misión Aprende</h1><p class="sub">¿Quién juega hoy?</p>${cards}<button class="parent-link" data-act="parent">👨‍👩‍👧 Zona de padres</button></div>`;
   }
 
-  /* ---------- Mapa de misiones ---------- */
+  /* ---------- Mapa de la isla ---------- */
+  const DECO = {
+    peque: ['🌈', '🌸', '☁️', '🌷', '⭐', '🦋'],
+    explorador: ['🌋', '🌴', '🦴', '🌿', '🪨', '☁️'],
+  };
+  const DECO_POS = [[3, 2], [86, 3], [2, 38], [88, 46], [3, 76], [86, 88]];
+
   function renderMap(pid) {
     stopSpeech();
     cur.pid = pid;
@@ -219,30 +279,70 @@
       dots = Array.from({ length: allowed }, (_, k) => `<i class="${k < done ? 'on' : ''}"></i>`).join('');
     }
     const firstPending = ms.findIndex((m, i) => isUnlocked(pid, i) && !(p.missions[m.id] && p.missions[m.id].done));
-    const nodes = ms.map((m, i) => {
+    const stone = (m, i) => {
       const u = isUnlocked(pid, i);
       const rec = p.missions[m.id];
+      const done = rec && rec.done > 0;
       const st = rec ? rec.stars : 0;
-      return `<button class="node ${u ? '' : 'locked'} ${i === firstPending ? 'current' : ''}" data-act="mission" data-i="${i}" ${u ? '' : 'disabled'}><span class="num">${i + 1}</span><span class="ico">${u ? m.icon : '🔒'}</span><span class="ttl">${esc(m.title)}</span><span class="st">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span></button>`;
-    }).join('');
+      const cls = ['stone', u ? '' : 'locked', done ? 'done' : '', i === firstPending ? 'current' : ''].join(' ');
+      return `<button class="${cls}" data-act="mission" data-i="${i}" ${u ? '' : 'disabled'}><span class="disc">${u ? m.icon : '🔒'}<span class="num">${i + 1}</span></span><span class="cap">${esc(m.title)}</span><span class="st">${done ? '★'.repeat(st) + '☆'.repeat(3 - st) : ''}</span></button>`;
+    };
+    let rows = '';
+    for (let i = 0, r = 0; i < ms.length; i += 3, r++) {
+      let items = ms.slice(i, i + 3).map((m, k) => stone(m, i + k));
+      while (items.length < 3) items.push('<span class="stone ghost"></span>');
+      rows += `<div class="maprow ${r % 2 ? 'rev' : ''}">${items.join('')}</div>`;
+    }
+    const deco = DECO[pid].map((e, k) => `<span class="deco" style="left:${DECO_POS[k][0]}%;top:${DECO_POS[k][1]}%">${e}</span>`).join('');
     $app.innerHTML = `${header(esc(pr.world), 'back-home')}
-      <div class="card"><div class="hero"><div class="avatar">${rk.icon}</div><div class="grow"><b>${esc(p.name)}</b><br>${rk.title}</div><div class="stars">⭐ ${totalStars(pid)}</div></div>
+      <div class="card"><div class="hero"><div class="avatar">${mascotHTML(pid, 'idle')}</div><div class="grow"><b>${esc(p.name)}</b><br>${rk.icon} ${rk.title}</div><div class="stars">⭐ ${totalStars(pid)}</div></div>
       <div class="today">Hoy: ${dots || '∞'} ${allowed === Infinity ? '' : `<span>${Math.min(playedToday(pid), allowed)}/${allowed}</span>`}</div></div>
-      <div class="map">${nodes}</div>
-      <button class="btn album-btn" data-act="album">${pid === 'peque' ? '📒 Mis pegatinas de animales' : '🏅 Mis insignias de héroe'}</button>`;
+      <div class="islandmap" id="island"><svg class="path" id="islpath" aria-hidden="true"></svg>${deco}${rows}<div class="map-mascot" id="mapmascot">${mascotHTML(pid, 'idle')}</div></div>
+      <button class="btn album-btn" data-act="album">${pid === 'peque' ? '📒 Mis pegatinas mágicas' : '🦴 Mi colección de dinos'}</button>`;
+    requestAnimationFrame(drawMap);
   }
+
+  function drawMap() {
+    const map = document.getElementById('island');
+    if (!map) return;
+    const mr = map.getBoundingClientRect();
+    const discs = Array.from(map.querySelectorAll('.disc'));
+    if (!discs.length || !mr.width) return;
+    const pts = discs.map((d) => {
+      const r = d.getBoundingClientRect();
+      return [r.left - mr.left + r.width / 2, r.top - mr.top + r.height / 2];
+    });
+    let d = '';
+    pts.forEach((p, i) => {
+      if (i === 0) { d += `M${p[0].toFixed(1)} ${p[1].toFixed(1)}`; return; }
+      const q = pts[i - 1];
+      const my = (q[1] + p[1]) / 2;
+      d += ` C${q[0].toFixed(1)} ${my.toFixed(1)} ${p[0].toFixed(1)} ${my.toFixed(1)} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
+    });
+    const svg = document.getElementById('islpath');
+    svg.setAttribute('viewBox', `0 0 ${mr.width.toFixed(1)} ${mr.height.toFixed(1)}`);
+    svg.innerHTML = `<path d="${d}" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="9" stroke-linecap="round" stroke-dasharray="1 17"/>`;
+    const curDisc = map.querySelector('.stone.current .disc') || discs[discs.length - 1];
+    const cr = curDisc.getBoundingClientRect();
+    const mm = document.getElementById('mapmascot');
+    if (mm) {
+      mm.style.left = (cr.left - mr.left + cr.width / 2 - 34) + 'px';
+      mm.style.top = (cr.top - mr.top - 76) + 'px';
+    }
+  }
+  window.addEventListener('resize', drawMap);
 
   function renderAlbum(pid) {
     const p = P(pid);
-    const all = Games.STICKERS[pid].slice(0, missionsOf(pid).length);
+    const all = missionsOf(pid).map((m) => m.sticker);
     const items = all.map((s) => (p.stickers.includes(s) ? `<div>${s}</div>` : '<div class="locked">?</div>')).join('');
-    $app.innerHTML = `${header(pid === 'peque' ? 'Mis pegatinas' : 'Mis insignias', 'back-map')}<div class="card"><p>Has conseguido <b>${p.stickers.length}</b> de ${all.length}. ¡Completa misiones para ganar más!</p></div><div class="album">${items}</div>`;
+    $app.innerHTML = `${header(pid === 'peque' ? 'Mis pegatinas' : 'Mi colección', 'back-map')}<div class="card"><p>Has conseguido <b>${all.filter((s) => p.stickers.includes(s)).length}</b> de ${all.length}. ¡Completa misiones para ganar más!</p></div><div class="album">${items}</div>`;
   }
 
   function renderDoneToday(pid) {
     stopSpeech();
     const msg = '¡Misión cumplida por hoy! Mañana te esperan más aventuras.';
-    $app.innerHTML = `${header('', 'back-map')}<div class="card result"><div class="bigemoji">🌙</div><h1>¡Misión cumplida por hoy!</h1><p class="msg">Has hecho ${playedToday(pid)} misiones. Ahora toca descansar o jugar fuera. ¡Mañana hay más aventuras!</p><div class="btns"><button class="btn" data-act="back-home">Volver al inicio</button></div></div>`;
+    $app.innerHTML = `${header('', 'back-map')}<div class="card result">${mascotHTML(pid, 'idle happy', null)}<h1>¡Misión cumplida por hoy!</h1><p class="msg">Has hecho ${playedToday(pid)} misiones. Ahora toca descansar o jugar fuera. ¡Mañana hay más aventuras!</p><div class="btns"><button class="btn" data-act="back-home">Volver al inicio</button></div></div>`;
     rain(['⭐', '🌟', '✨']);
     setTimeout(() => speak(msg), 300);
   }
@@ -263,8 +363,10 @@
     if (run.q >= run.m.rounds) { finish(); return; }
     run.question = run.m.gen();
     run.step = 0;
-    renderStep();
+    if (run.question.type) renderInteractive(); else renderStep();
   }
+
+  const progressDots = () => Array.from({ length: run.m.rounds }, (_, k) => `<i class="${k < run.q ? 'on' : k === run.q ? 'cur' : ''}"></i>`).join('');
 
   function renderStep() {
     const { m, question: qu, step } = run;
@@ -273,14 +375,13 @@
     run.qErr = 0;
     run.locked = false;
     run.counted = 0;
-    const dots = Array.from({ length: m.rounds }, (_, k) => `<i class="${k < run.q ? 'on' : k === run.q ? 'cur' : ''}"></i>`).join('');
-    let html = header(`${m.icon} ${esc(m.title)}`, 'back-map') + `<div class="progress">${dots}</div>`;
+    let html = header(`${m.icon} ${esc(m.title)}`, 'back-map') + `<div class="progress">${progressDots()}</div>`;
     if (qu.story) {
       html += `<div class="card story"><div class="storyvis">${qu.story.visual || ''}</div><p>${fmtNums(qu.story.text)}</p><button class="speakbtn" data-act="speak" data-t="story" aria-label="Escuchar">🔊</button></div>`;
     }
     if (st.visual) html += `<div class="stvis">${st.visual}</div>`;
     html += `<div class="promptrow"><h2 class="prompt">${st.prompt}</h2><button class="speakbtn" data-act="speak" data-t="step" aria-label="Escuchar">🔊</button></div>`;
-    html += `<div class="options ${st.layout}">${st.options.map((o, k) => `<button class="opt" data-act="opt" data-i="${k}">${o.html}</button>`).join('')}</div><div class="hintbox" id="hint"></div>`;
+    html += `<div class="options ${st.layout}">${st.options.map((o, k) => `<button class="opt" data-act="opt" data-i="${k}">${o.html}</button>`).join('')}</div><div class="hintbox" id="hint"></div>${mascotMini(run.pid)}`;
     $app.innerHTML = html;
     window.scrollTo(0, 0);
     const text = step === 0 && qu.story ? qu.story.text + ' ' + (st.speak || st.prompt) : (st.speak || st.prompt);
@@ -298,6 +399,7 @@
       run.units++;
       fx.ok();
       burst(btn);
+      react('happy');
       speak(pick(PRAISE));
       save();
       setTimeout(() => {
@@ -313,6 +415,7 @@
       btn.classList.add('wrong');
       btn.disabled = true;
       fx.bad();
+      react('sad');
       const hint = document.getElementById('hint');
       if (hint && st.hint && run.pid === 'explorador') {
         hint.textContent = '💡 ' + st.hint;
@@ -329,6 +432,235 @@
     }
   }
 
+  /* ---------- Juegos interactivos: arrastrar y unir ---------- */
+  function dragify(tokens, cb) {
+    tokens.forEach((el) => {
+      el.addEventListener('pointerdown', (e) => {
+        if (el.dataset.locked || (run && run.locked)) return;
+        e.preventDefault();
+        try { el.setPointerCapture(e.pointerId); } catch (err) { /* nada */ }
+        const sx = e.clientX;
+        const sy = e.clientY;
+        el.classList.add('dragging');
+        el.style.transition = 'none';
+        const move = (ev) => { el.style.transform = `translate(${ev.clientX - sx}px, ${ev.clientY - sy}px) scale(1.12)`; };
+        const up = (ev) => {
+          el.removeEventListener('pointermove', move);
+          el.removeEventListener('pointerup', up);
+          el.removeEventListener('pointercancel', up);
+          el.classList.remove('dragging');
+          el.style.pointerEvents = 'none';
+          const under = document.elementFromPoint(ev.clientX, ev.clientY);
+          el.style.pointerEvents = '';
+          const zone = under && under.closest ? under.closest('[data-zone]') : null;
+          const ok = ev.type === 'pointerup' ? cb(el, zone) : false;
+          if (!ok) {
+            el.style.transition = 'transform .25s';
+            el.style.transform = '';
+          }
+        };
+        el.addEventListener('pointermove', move);
+        el.addEventListener('pointerup', up);
+        el.addEventListener('pointercancel', up);
+      });
+    });
+  }
+  function settle(el, zoneEl) {
+    el.dataset.locked = '1';
+    el.style.transition = '';
+    el.style.transform = '';
+    zoneEl.appendChild(el);
+  }
+
+  function interactiveError(msg) {
+    run.errs++;
+    run.qErr++;
+    fx.bad();
+    react('sad');
+    speak(msg || '¡Casi! Inténtalo otra vez.');
+    save();
+  }
+  function completeInteractive() {
+    if (run.locked) return;
+    run.locked = true;
+    noteSkill(run.pid, run.question.tag, run.qErr === 0);
+    run.units++;
+    fx.ok();
+    react('happy');
+    speak(pick(PRAISE));
+    save();
+    setTimeout(() => { run.q++; nextQuestion(); }, 1200);
+  }
+
+  function renderInteractive() {
+    const q = run.question;
+    const m = run.m;
+    run.qErr = 0;
+    run.locked = false;
+    let area = '';
+    if (q.type === 'drag-count') {
+      area = `<div class="basket" id="basket" data-zone="basket"><span class="big" id="bcount">0</span><div class="bitems" id="bitems"></div><div class="blabel">🧺</div></div>
+        <div class="pile" id="pile">${Array.from({ length: q.total }, () => `<div class="token">${q.e}</div>`).join('')}</div>`;
+    } else if (q.type === 'drag-sort') {
+      area = `<div class="sortzones">${q.zones.map((z) => `<div class="sortzone" data-zone="${z.key}"><h3>${z.e} ${z.label}</h3><div class="zitems"></div></div>`).join('')}</div>
+        <div class="pile" id="pile">${q.items.map((it) => `<div class="token" data-key="${it.zone}">${it.e}</div>`).join('')}</div>`;
+    } else if (q.type === 'drag-shape') {
+      area = `<div class="holes">${q.holes.map((h) => `<div class="hole" data-zone="${h.id}"><span class="sil">${h.sil}</span></div>`).join('')}</div>
+        <div class="pile" id="pile">${q.tokens.map((h) => `<div class="token shapetok" data-key="${h.id}">${h.tok}</div>`).join('')}</div>`;
+    } else if (q.type === 'drag-order') {
+      area = `<div class="slots">${q.sorted.map((_, i) => `<div class="slot" data-zone="${i}"></div>`).join('')}</div>
+        <p class="slotsnote">${q.desc ? 'el más grande ➜ el más pequeño' : 'el más pequeño ➜ el más grande'}</p>
+        <div class="pile" id="pile">${q.nums.map((n) => `<div class="token numtok" data-key="${n}">${n}</div>`).join('')}</div>`;
+    } else if (q.type === 'connect') {
+      area = `<div class="connect" id="conn"><svg class="lines" id="clines" aria-hidden="true"></svg>
+        <div class="col">${q.left.map((l) => `<div class="cnode left" data-id="${l.id}">${l.html}</div>`).join('')}</div>
+        <div class="col">${q.right.map((r) => `<div class="cnode right" data-id="${r.id}">${r.html}</div>`).join('')}</div></div>
+        <p class="tiny">Arrastra el dedo desde un punto hasta su pareja</p>`;
+    }
+    $app.innerHTML = header(`${m.icon} ${esc(m.title)}`, 'back-map') + `<div class="progress">${progressDots()}</div>
+      <div class="promptrow"><h2 class="prompt">${q.prompt}</h2><button class="speakbtn" data-act="speak" data-t="step" aria-label="Escuchar">🔊</button></div>
+      <div class="play-area">${area}</div>${mascotMini(run.pid)}`;
+    window.scrollTo(0, 0);
+    wireInteractive(q);
+    setTimeout(() => speak(q.speak || q.prompt), 250);
+  }
+
+  function wireInteractive(q) {
+    const tokens = Array.from($app.querySelectorAll('.pile .token'));
+    if (q.type === 'drag-count') {
+      const items = document.getElementById('bitems');
+      const cnt = document.getElementById('bcount');
+      let n = 0;
+      dragify(tokens, (el, zone) => {
+        if (!zone || zone.dataset.zone !== 'basket' || n >= q.n) return false;
+        n++;
+        settle(el, items);
+        cnt.textContent = n;
+        speak(String(n));
+        fx.tap();
+        if (n === q.n) completeInteractive();
+        return true;
+      });
+    } else if (q.type === 'drag-sort') {
+      let left = q.items.length;
+      dragify(tokens, (el, zone) => {
+        if (!zone) return false;
+        if (zone.dataset.zone === el.dataset.key) {
+          settle(el, zone.querySelector('.zitems'));
+          fx.tap();
+          left--;
+          if (left === 0) completeInteractive();
+          return true;
+        }
+        interactiveError('Ese no va ahí. ¡Prueba en el otro grupo!');
+        return false;
+      });
+    } else if (q.type === 'drag-shape') {
+      let left = q.holes.length;
+      dragify(tokens, (el, zone) => {
+        if (!zone) return false;
+        if (zone.dataset.zone === el.dataset.key && !zone.classList.contains('filled')) {
+          const sil = zone.querySelector('.sil');
+          if (sil) sil.style.display = 'none';
+          zone.classList.add('filled');
+          settle(el, zone);
+          fx.tap();
+          left--;
+          if (left === 0) completeInteractive();
+          return true;
+        }
+        interactiveError('Esa forma no encaja ahí. ¡Prueba en otro hueco!');
+        return false;
+      });
+    } else if (q.type === 'drag-order') {
+      let filled = 0;
+      dragify(tokens, (el, zone) => {
+        if (!zone || !zone.classList.contains('slot') || zone.classList.contains('filled')) return false;
+        const idx = parseInt(zone.dataset.zone, 10);
+        if (parseInt(el.dataset.key, 10) === q.sorted[idx]) {
+          zone.classList.add('filled');
+          settle(el, zone);
+          fx.tap();
+          filled++;
+          if (filled === q.sorted.length) completeInteractive();
+          return true;
+        }
+        interactiveError(q.desc ? 'Ese no va ahí. Busca un número más grande.' : 'Ese no va ahí. Busca un número más pequeño.');
+        if (run.qErr >= 2) {
+          const firstEmpty = $app.querySelector('.slot:not(.filled)');
+          const want = q.sorted[parseInt(firstEmpty.dataset.zone, 10)];
+          const tk = tokens.find((t) => parseInt(t.dataset.key, 10) === want && !t.dataset.locked);
+          if (tk) tk.classList.add('pulse');
+        }
+        return false;
+      });
+    } else if (q.type === 'connect') {
+      wireConnect(q);
+    }
+  }
+
+  function wireConnect(q) {
+    const conn = document.getElementById('conn');
+    const svg = document.getElementById('clines');
+    const colors = ['#e5484d', '#2b8cff', '#3fae49', '#f5a623', '#9b51e0'];
+    let matched = 0;
+    const NS = 'http://www.w3.org/2000/svg';
+    const pointOf = (el, side) => {
+      const r = el.getBoundingClientRect();
+      const c = conn.getBoundingClientRect();
+      return [(side === 'r' ? r.right : r.left) - c.left, r.top - c.top + r.height / 2];
+    };
+    conn.querySelectorAll('.cnode.left').forEach((node) => {
+      node.addEventListener('pointerdown', (e) => {
+        if (node.classList.contains('matched') || run.locked) return;
+        e.preventDefault();
+        try { node.setPointerCapture(e.pointerId); } catch (err) { /* nada */ }
+        const [x1, y1] = pointOf(node, 'r');
+        const line = document.createElementNS(NS, 'line');
+        line.setAttribute('x1', x1);
+        line.setAttribute('y1', y1);
+        line.setAttribute('x2', x1);
+        line.setAttribute('y2', y1);
+        line.setAttribute('stroke', '#26324f');
+        line.setAttribute('stroke-width', '8');
+        line.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(line);
+        const move = (ev) => {
+          const c = conn.getBoundingClientRect();
+          line.setAttribute('x2', ev.clientX - c.left);
+          line.setAttribute('y2', ev.clientY - c.top);
+        };
+        const up = (ev) => {
+          node.removeEventListener('pointermove', move);
+          node.removeEventListener('pointerup', up);
+          node.removeEventListener('pointercancel', up);
+          const under = ev.type === 'pointerup' ? document.elementFromPoint(ev.clientX, ev.clientY) : null;
+          const target = under && under.closest ? under.closest('.cnode.right') : null;
+          if (target && !target.classList.contains('matched')) {
+            if (target.dataset.id === node.dataset.id) {
+              const [x2, y2] = pointOf(target, 'l');
+              line.setAttribute('x2', x2);
+              line.setAttribute('y2', y2);
+              line.setAttribute('stroke', colors[matched % colors.length]);
+              node.classList.add('matched');
+              target.classList.add('matched');
+              matched++;
+              fx.ok();
+              burst(target);
+              if (matched === q.left.length) completeInteractive();
+              return;
+            }
+            interactiveError('Esa no es su pareja. ¡Inténtalo otra vez!');
+          }
+          line.remove();
+        };
+        node.addEventListener('pointermove', move);
+        node.addEventListener('pointerup', up);
+        node.addEventListener('pointercancel', up);
+      });
+    });
+  }
+
   /* ---------- Memoria ---------- */
   function startMemory() {
     const pairs = run.m.pairs;
@@ -337,7 +669,7 @@
     run.mem = { cards, open: [], matched: 0, lock: false, pairs };
     run.units = pairs;
     const grid = cards.map((c, i) => `<button class="mcard" data-act="card" data-i="${i}" aria-label="Carta"><span class="inner"><span class="face front">❓</span><span class="face back">${c.e}</span></span></button>`).join('');
-    $app.innerHTML = `${header(`${run.m.icon} ${esc(run.m.title)}`, 'back-map')}<div class="promptrow"><h2 class="prompt">Encuentra las parejas</h2><button class="speakbtn" data-act="speak" data-t="mem">🔊</button></div><div class="mgrid ${cards.length > 6 ? 'c4' : ''}">${grid}</div>`;
+    $app.innerHTML = `${header(`${run.m.icon} ${esc(run.m.title)}`, 'back-map')}<div class="promptrow"><h2 class="prompt">Encuentra las parejas</h2><button class="speakbtn" data-act="speak" data-t="mem">🔊</button></div><div class="mgrid ${cards.length > 6 ? 'c4' : ''}">${grid}</div>${mascotMini(run.pid)}`;
     setTimeout(() => speak('Encuentra las parejas de animales'), 250);
   }
 
@@ -366,6 +698,7 @@
           mem.matched++;
           fx.ok();
           burst(ea);
+          react('happy');
           speak('¡Pareja de ' + ca.pl + '!');
           if (mem.matched === mem.pairs) setTimeout(finish, 1400);
         } else {
@@ -390,13 +723,11 @@
       ? (run.errs <= run.units ? 3 : run.errs <= run.units * 2 ? 2 : 1)
       : (ratio <= 0.15 ? 3 : ratio <= 0.5 ? 2 : 1);
     const rec = p.missions[m.id] || { stars: 0, done: 0 };
-    const firstTime = rec.done === 0;
     rec.done++;
     rec.stars = Math.max(rec.stars, stars);
     p.missions[m.id] = rec;
-    const stk = Games.STICKERS[pid][i];
     let newSticker = null;
-    if (stk && !p.stickers.includes(stk)) { p.stickers.push(stk); newSticker = stk; }
+    if (m.sticker && !p.stickers.includes(m.sticker)) { p.stickers.push(m.sticker); newSticker = m.sticker; }
     p.history.push({ d: todayKey(), m: m.id, s: stars, e: run.errs, t: Date.now() });
     if (p.history.length > 300) p.history = p.history.slice(-300);
     save();
@@ -406,20 +737,20 @@
     const left = remaining(pid);
     let btns = '';
     if (left > 0) {
-      if (hasNext) btns += `<button class="btn" data-act="next">Siguiente misión ▶</button>`;
-      btns += `<button class="btn alt" data-act="again">🔁 Repetir esta misión</button>`;
-      btns += `<button class="btn alt" data-act="back-map">🗺️ Volver al mapa</button>`;
+      if (hasNext) btns += '<button class="btn" data-act="next">Siguiente misión ▶</button>';
+      btns += '<button class="btn alt" data-act="again">🔁 Repetir esta misión</button>';
+      btns += '<button class="btn alt" data-act="back-map">🗺️ Volver al mapa</button>';
     } else {
-      btns += `<button class="btn" data-act="back-map">🌙 ¡Hasta mañana!</button>`;
+      btns += '<button class="btn" data-act="back-map">🌙 ¡Hasta mañana!</button>';
     }
     const msg = left > 0 ? '¡Buen trabajo! ¿Seguimos?' : '¡Misión cumplida por hoy! Mañana te esperan más aventuras.';
-    $app.innerHTML = `${header('', null)}<div class="card result"><h1>¡Misión completada!</h1><div class="bigstars">${'⭐'.repeat(stars)}${'<span style="opacity:.25">⭐</span>'.repeat(3 - stars)}</div>${newSticker ? `<p>Nueva ${pid === 'peque' ? 'pegatina' : 'insignia'}:</p><div class="sticker-new">${newSticker}</div>` : ''}${levelUp ? `<div class="level-up">${rankNow.icon} ¡Subes de nivel: ${rankNow.title}!</div>` : ''}<p class="msg">${msg}</p><div class="btns">${btns}</div></div>`;
+    const what = pid === 'peque' ? 'pegatina' : 'tesoro';
+    $app.innerHTML = `${header('', null)}<div class="card result">${mascotHTML(pid, 'idle happy')}<h1>¡Misión completada!</h1><div class="bigstars">${'⭐'.repeat(stars)}${'<span style="opacity:.25">⭐</span>'.repeat(3 - stars)}</div>${newSticker ? `<p>Nuevo ${what}:</p><div class="sticker-new">${newSticker}</div>` : ''}${levelUp ? `<div class="level-up">${rankNow.icon} ¡Subes de nivel: ${rankNow.title}!</div>` : ''}<p class="msg">${msg}</p><div class="btns">${btns}</div></div>`;
     window.scrollTo(0, 0);
     setTheme(pid);
     fx.win();
     rain(['⭐', '🎉', '✨', newSticker || '🌟']);
     setTimeout(() => speak(msg), 500);
-    void firstTime;
   }
 
   /* ---------- Zona de padres ---------- */
@@ -524,6 +855,7 @@
         break;
       case 'speak': {
         if (t.dataset.t === 'mem') speak('Encuentra las parejas de animales');
+        else if (run && run.question && run.question.type) speak(run.question.speak || run.question.prompt);
         else if (run && run.question) {
           const st = run.question.steps[run.step];
           speak(t.dataset.t === 'story' ? run.question.story.text : (st.speak || st.prompt));
