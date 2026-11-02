@@ -381,6 +381,41 @@ const MG_BUNDLE = (function () {
 .paint-tools { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 12px; }
 .ptool { width: 46px; height: 46px; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 3px 0 rgba(0,0,0,.2); font-size: 22px; background: #fff; padding: 0; }
 .ptool.on { outline: 4px solid var(--ink); }
+
+/* ===== Mundos, zonas y armario por secciones ===== */
+body[data-theme="gatito"] { --bg: #fff1dc; --primary: #f08a2e; --accent: #ff6fa5; --island1: #ffe7c2; --island2: #ffd0e0; }
+body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff; --island1: #ffd6a8; --island2: #f6a38c; }
+.islandmap.z1 { --island1: #d9f0ff; --island2: #b8e0c8; }
+.islandmap.z2 { --island1: #fff0c4; --island2: #f6cf9c; }
+.islandmap.z3 { --island1: #e5dcff; --island2: #b5d8f4; }
+.islandmap.z4 { --island1: #ffd9e6; --island2: #f1c4ff; }
+.zonebar { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.zonebar .zname { flex: 1; text-align: center; background: #fff; border-radius: 18px; padding: 8px 10px; box-shadow: 0 4px 0 rgba(0,0,0,.1); }
+.zonebar .zname b { display: block; font-size: 19px; }
+.zonebar .zname span { font-size: 14px; opacity: .75; }
+.zbtn { width: 54px; height: 54px; border: 0; border-radius: 50%; background: var(--primary); color: #fff; font-size: 22px; font-weight: 900; box-shadow: 0 4px 0 rgba(0,0,0,.2); }
+.zbtn:disabled { opacity: .3; }
+.worlds { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
+.world { display: flex; align-items: center; gap: 16px; width: 100%; border: 0; text-align: left; padding: 18px; border-radius: 28px; color: #fff; box-shadow: 0 6px 0 rgba(0,0,0,.18); background: linear-gradient(135deg, #5cc45f, #f6c93a); }
+.world.peque { background: linear-gradient(135deg, #c77dff, #ff8fc1); }
+.world.gatito { background: linear-gradient(135deg, #ff9f43, #ff6fa5); }
+.world.explorador { background: linear-gradient(135deg, #2e9e4a, #1aa7a0); }
+.world.dragon { background: linear-gradient(135deg, #e5484d, #ff9f43); }
+.world .em { width: 84px; flex-shrink: 0; font-size: 0; }
+.world b { font-size: 22px; display: block; }
+.world span { display: block; font-size: 16px; }
+.world.locked { background: #d9dce6; color: #555b70; box-shadow: none; }
+.world.locked .em { font-size: 54px; text-align: center; }
+.secbox { background: #fff; border-radius: 24px; padding: 14px; margin-top: 14px; box-shadow: 0 5px 0 rgba(0,0,0,.1); }
+.secbox h3 { margin: 0 0 8px; font-size: 20px; }
+.secbox h3 small { opacity: .6; font-size: 15px; }
+.secbox .accs { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); margin-top: 6px; }
+.secbox .acc { background: #f5f6fb; box-shadow: none; padding: 8px 4px; }
+.secbox .acc.on { outline: 4px solid var(--primary); background: #fff; }
+.secbox .acc span { font-size: 30px; }
+.secbox .acc small { font-size: 12px; text-align: center; opacity: .9; }
+.bignum { font-size: 120px; font-weight: 900; text-align: center; color: var(--primary); line-height: 1.1; margin: 6px 0; }
+.chip.coin { background: #fff6c9; border: 3px solid #e0a800; }
 `;document.head.appendChild(st);}catch(e){}})();
 /* Misión Aprende - interfaz, progreso y panel para padres */
 (function () {
@@ -414,15 +449,31 @@ const MG_BUNDLE = (function () {
     pending: 0,
     mg: 0,
     accs: [],
-    worn: [],
+    worn: { head: '', face: '', body: '', back: '' },
     best: {},
   });
   function normalize(s) {
     s = s && typeof s === 'object' ? s : {};
     s.settings = Object.assign({ sound: true, voice: '', rate: 0.92, rewardEvery: 5 }, s.settings || {});
     s.profiles = s.profiles || {};
+    const OLD_WORN = { gafas: 'face', corona: 'head', capa: 'back', gorro: 'head', pajarita: 'body', bufanda: 'body' };
     Object.keys(Games.PROFILES).forEach((id) => {
-      s.profiles[id] = Object.assign(defaultProfile(id), s.profiles[id] || {});
+      const p = Object.assign(defaultProfile(id), s.profiles[id] || {});
+      s.profiles[id] = p;
+      // La ropa pasa de una lista a 4 secciones
+      if (Array.isArray(p.worn)) {
+        const w = { head: '', face: '', body: '', back: '' };
+        p.worn.forEach((a) => { if (OLD_WORN[a]) w[OLD_WORN[a]] = a; });
+        p.worn = w;
+      }
+      p.worn = Object.assign({ head: '', face: '', body: '', back: '' }, p.worn);
+      // Las misiones antiguas (p1, h3...) se pasan a las nuevas en orden
+      const old = Object.keys(p.missions).filter((k) => /^[ph]\d+$/.test(k));
+      if (old.length) {
+        const recs = old.map((k) => p.missions[k]).filter((r) => r && r.done > 0);
+        old.forEach((k) => { delete p.missions[k]; });
+        recs.forEach((r, k) => { const m = Games.MISSIONS[id][k]; if (m) p.missions[m.id] = r; });
+      }
     });
     return s;
   }
@@ -448,9 +499,20 @@ const MG_BUNDLE = (function () {
   }
   const totalStars = (pid) => Object.values(P(pid).missions).reduce((a, m) => a + (m.stars || 0), 0);
   const doneCount = (pid) => Object.values(P(pid).missions).filter((m) => m.done > 0).length;
-  const playedToday = (pid) => P(pid).history.filter((h) => h.d === todayKey()).length;
+  const kidOf = (pid) => Games.PROFILES[pid].kid;
+  const famOf = (pid) => Games.PROFILES[pid].family;
+  const worldsOf = (kid) => Object.keys(Games.PROFILES).filter((x) => kidOf(x) === kid).sort((a, b) => Games.PROFILES[a].w - Games.PROFILES[b].w);
+  // Las misiones de hoy se cuentan entre todos los mundos del mismo niño
+  const playedToday = (pid) => worldsOf(kidOf(pid)).reduce((n, x) => n + P(x).history.filter((h) => h.d === todayKey()).length, 0);
+  function worldUnlocked(pid) {
+    const pr = Games.PROFILES[pid];
+    if (!pr.unlockAfter || S.settings.worldsOpen) return true;
+    const prev = worldsOf(pr.kid).find((x) => Games.PROFILES[x].w === pr.w - 1);
+    return !!prev && doneCount(prev) >= pr.unlockAfter;
+  }
+  const hasManyWorlds = (kid) => worldsOf(kid).filter(worldUnlocked).length > 1;
   function allowedToday(pid) {
-    const p = P(pid);
+    const p = P(kidOf(pid));
     if (!p.limit) return Infinity;
     return p.limit + (p.extra.date === todayKey() ? p.extra.n : 0);
   }
@@ -611,33 +673,106 @@ const MG_BUNDLE = (function () {
     <path class="mc" d="M84 114 q16 14 32 0" stroke="#2f7d3a" stroke-width="4" fill="none" stroke-linecap="round"/>
     <path class="mo" d="M82 112 q18 24 36 0Z" fill="#c2455f"/><polygon class="mo" points="88,113 93,113 90.5,119" fill="#fff"/><polygon class="mo" points="107,113 112,113 109.5,119" fill="#fff"/>
   </svg>`;
-  /* Accesorios que se ganan con los regalos */
-  const ACCS = [
-    { id: 'gafas', name: 'Gafas de sol', icon: '🕶️' },
-    { id: 'corona', name: 'Corona', icon: '👑' },
-    { id: 'capa', name: 'Capa de superhéroe', icon: '🦸' },
-    { id: 'gorro', name: 'Gorro de fiesta', icon: '🎉' },
-    { id: 'pajarita', name: 'Pajarita', icon: '🎀' },
-    { id: 'bufanda', name: 'Bufanda', icon: '🧣' },
+  const DRAGON = `<svg viewBox="0 0 200 210" class="mascot-svg" aria-hidden="true">
+    <path d="M146 172 C196 182 202 148 184 126 C184 154 166 160 146 156Z" fill="#f0634a" stroke="#a82f1d" stroke-width="4" stroke-linejoin="round"/>
+    <polygon points="172,142 186,130 184,148" fill="#ffc23d"/>
+    <ellipse cx="78" cy="196" rx="22" ry="12" fill="#f0634a" stroke="#a82f1d" stroke-width="4"/>
+    <ellipse cx="122" cy="196" rx="22" ry="12" fill="#f0634a" stroke="#a82f1d" stroke-width="4"/>
+    <ellipse cx="100" cy="158" rx="52" ry="42" fill="#f0634a" stroke="#a82f1d" stroke-width="4"/>
+    <ellipse cx="100" cy="168" rx="32" ry="28" fill="#ffd9a0"/>
+    <path d="M82 158 h36 M80 170 h40 M84 182 h32" stroke="#f0b873" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="50" cy="164" rx="9" ry="14" fill="#f0634a" stroke="#a82f1d" stroke-width="4" transform="rotate(20 50 164)"/>
+    <ellipse cx="150" cy="164" rx="9" ry="14" fill="#f0634a" stroke="#a82f1d" stroke-width="4" transform="rotate(-20 150 164)"/>
+    <polygon points="62,62 52,18 86,46" fill="#ffe9b0" stroke="#c9a24d" stroke-width="3.5" stroke-linejoin="round"/>
+    <polygon points="138,62 148,18 114,46" fill="#ffe9b0" stroke="#c9a24d" stroke-width="3.5" stroke-linejoin="round"/>
+    <polygon points="88,50 100,26 112,50" fill="#ffc23d" stroke="#d98e00" stroke-width="3" stroke-linejoin="round"/>
+    <ellipse cx="100" cy="92" rx="52" ry="44" fill="#f0634a" stroke="#a82f1d" stroke-width="4"/>
+    <g class="eo"><circle cx="78" cy="84" r="12" fill="#fff" stroke="#a82f1d" stroke-width="3"/><circle cx="122" cy="84" r="12" fill="#fff" stroke="#a82f1d" stroke-width="3"/><ellipse cx="80" cy="86" rx="5" ry="7" fill="#26324f"/><ellipse cx="120" cy="86" rx="5" ry="7" fill="#26324f"/><circle cx="82" cy="83" r="2.2" fill="#fff"/><circle cx="122" cy="83" r="2.2" fill="#fff"/></g>
+    <g class="eh"><path d="M66 88 q12 -14 24 0" stroke="#26324f" stroke-width="4.5" fill="none" stroke-linecap="round"/><path d="M110 88 q12 -14 24 0" stroke="#26324f" stroke-width="4.5" fill="none" stroke-linecap="round"/></g>
+    <circle cx="92" cy="106" r="3" fill="#a82f1d"/><circle cx="108" cy="106" r="3" fill="#a82f1d"/>
+    <circle cx="62" cy="104" r="8" fill="#ff9ec2" opacity=".75"/><circle cx="138" cy="104" r="8" fill="#ff9ec2" opacity=".75"/>
+    <path class="mc" d="M84 114 q16 14 32 0" stroke="#a82f1d" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path class="mo" d="M82 112 q18 24 36 0Z" fill="#8a1f33"/><polygon class="mo" points="88,113 93,113 90.5,119" fill="#fff"/><polygon class="mo" points="107,113 112,113 109.5,119" fill="#fff"/>
+  </svg>`;
+  const CAT = `<svg viewBox="0 0 200 210" class="mascot-svg" aria-hidden="true">
+    <path d="M146 176 C192 168 200 130 176 124" stroke="#b3611f" stroke-width="20" fill="none" stroke-linecap="round"/>
+    <path d="M146 176 C192 168 200 130 176 124" stroke="#ffb066" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <rect x="68" y="176" width="20" height="28" rx="10" fill="#ffb066" stroke="#b3611f" stroke-width="4"/>
+    <rect x="112" y="176" width="20" height="28" rx="10" fill="#ffb066" stroke="#b3611f" stroke-width="4"/>
+    <ellipse cx="100" cy="158" rx="50" ry="34" fill="#ffb066" stroke="#b3611f" stroke-width="4"/>
+    <ellipse cx="100" cy="166" rx="28" ry="22" fill="#fff1dc"/>
+    <path d="M62 148 q6 6 14 4 M138 148 q-6 6 -14 4" stroke="#b3611f" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M58 70 L60 22 L96 50Z" fill="#ffb066" stroke="#b3611f" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M64 56 L65 36 L82 50Z" fill="#ff9ec2"/>
+    <path d="M142 70 L140 22 L104 50Z" fill="#ffb066" stroke="#b3611f" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M136 56 L135 36 L118 50Z" fill="#ff9ec2"/>
+    <circle cx="100" cy="98" r="48" fill="#ffb066" stroke="#b3611f" stroke-width="4"/>
+    <path d="M92 56 q8 8 16 0 M84 62 q16 10 32 0" stroke="#d98a3a" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <ellipse cx="100" cy="116" rx="22" ry="16" fill="#fff1dc"/>
+    <g class="eo"><ellipse cx="80" cy="100" rx="7" ry="9" fill="#3b2a55"/><ellipse cx="120" cy="100" rx="7" ry="9" fill="#3b2a55"/><circle cx="82" cy="96" r="2.6" fill="#fff"/><circle cx="122" cy="96" r="2.6" fill="#fff"/></g>
+    <g class="eh"><path d="M71 102 q9 -11 18 0" stroke="#3b2a55" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M111 102 q9 -11 18 0" stroke="#3b2a55" stroke-width="4" fill="none" stroke-linecap="round"/></g>
+    <circle cx="64" cy="114" r="8" fill="#ff9ec2" opacity=".7"/><circle cx="136" cy="114" r="8" fill="#ff9ec2" opacity=".7"/>
+    <path d="M94 110 L106 110 L100 118Z" fill="#ff7aa5" stroke="#c2455f" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M40 106 L64 110 M40 120 L64 118 M160 106 L136 110 M160 120 L136 118" stroke="#8a5a2a" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="mc" d="M92 122 q8 8 16 0" stroke="#7a3b1c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path class="mo" d="M90 120 q10 16 20 0Z" fill="#c2455f"/>
+  </svg>`;
+  const HERO_SVG = { unicorn: UNICORN, dino: DINO, dragon: DRAGON, cat: CAT };
+  // familia de anclajes: 'u' = ojos a y=100 (unicornio, gatito); 'd' = ojos a y=84 (dino, dragón)
+  const HERO_FAM = { unicorn: 'u', cat: 'u', dino: 'd', dragon: 'd' };
+  const heroOf = (pid) => Games.PROFILES[pid].hero;
+
+  /* ---------- Ropa: 4 secciones, 5 prendas en cada una (sirven para todos los héroes) ---------- */
+  const SECS = [
+    { id: 'head', name: 'Cabeza', icon: '🎩' },
+    { id: 'face', name: 'Cara', icon: '😎' },
+    { id: 'body', name: 'Cuerpo', icon: '👔' },
+    { id: 'back', name: 'Espalda', icon: '🎒' },
   ];
-  const ACC_BACK = {
-    capa: '<path d="M64 138 L136 138 L168 200 Q100 214 32 200Z" fill="#e5484d" stroke="#a3262b" stroke-width="3" stroke-linejoin="round"/>',
-  };
-  const ACC_FRONT = {
-    gafas: (pid) => (pid === 'peque'
-      ? '<g><rect x="63" y="88" width="32" height="26" rx="10" fill="#26324f"/><rect x="105" y="88" width="32" height="26" rx="10" fill="#26324f"/><path d="M95 99 L105 99" stroke="#26324f" stroke-width="4"/><path d="M69 94 l8 -2 M111 94 l8 -2" stroke="#fff" stroke-width="3" opacity=".6" stroke-linecap="round"/></g>'
-      : '<g><circle cx="78" cy="84" r="17" fill="#26324f"/><circle cx="122" cy="84" r="17" fill="#26324f"/><path d="M95 84 L105 84" stroke="#26324f" stroke-width="4"/><path d="M68 78 l8 -3 M112 78 l8 -3" stroke="#fff" stroke-width="3" opacity=".6" stroke-linecap="round"/></g>'),
-    corona: (pid) => `<g transform="translate(0 ${pid === 'peque' ? 0 : -2})"><path d="M72 64 L72 44 L86 54 L100 38 L114 54 L128 44 L128 64Z" fill="#ffd23f" stroke="#e0a800" stroke-width="3" stroke-linejoin="round"/><circle cx="100" cy="48" r="3.5" fill="#e5484d"/></g>`,
-    gorro: () => '<g><polygon points="116,58 148,50 140,14" fill="#ff6fa5" stroke="#c2417c" stroke-width="3" stroke-linejoin="round"/><circle cx="140" cy="12" r="6" fill="#ffd23f"/><path d="M122 52 l16 -4 M128 40 l10 -3" stroke="#fff" stroke-width="3" opacity=".7"/></g>',
-    pajarita: () => '<g><path d="M100 150 L78 138 L78 162Z" fill="#e5484d" stroke="#a3262b" stroke-width="3" stroke-linejoin="round"/><path d="M100 150 L122 138 L122 162Z" fill="#e5484d" stroke="#a3262b" stroke-width="3" stroke-linejoin="round"/><circle cx="100" cy="150" r="7" fill="#ff8a8a" stroke="#a3262b" stroke-width="3"/></g>',
-    bufanda: () => '<g><rect x="64" y="136" width="72" height="16" rx="8" fill="#2b8cff" stroke="#1456a8" stroke-width="3"/><rect x="118" y="146" width="18" height="34" rx="6" fill="#2b8cff" stroke="#1456a8" stroke-width="3"/><path d="M76 138 v12 M92 138 v12 M108 138 v12 M124 148 v28" stroke="#fff" stroke-width="3" opacity=".7"/></g>',
-  };
+  const heart = (x) => `<path d="M0 9 C-16 -3 -11 -17 0 -9 C11 -17 16 -3 0 9Z" transform="translate(${x} 100) scale(1.15)" fill="#ff4d8d" stroke="#b81f5b" stroke-width="2.5"/>`;
+  // draw(fam) devuelve SVG en coordenadas del unicornio; las de familia 'd' se desplazan con dy
+  const ITEMS = [
+    { id: 'corona', sec: 'head', name: 'Corona', icon: '👑', dy: [0, -2], svg: () => '<path d="M72 64 L72 44 L86 54 L100 38 L114 54 L128 44 L128 64Z" fill="#ffd23f" stroke="#e0a800" stroke-width="3" stroke-linejoin="round"/><circle cx="100" cy="48" r="3.5" fill="#e5484d"/>' },
+    { id: 'gorro', sec: 'head', name: 'Gorro de fiesta', icon: '🎉', dy: [0, -2], svg: () => '<polygon points="116,58 148,50 140,14" fill="#ff6fa5" stroke="#c2417c" stroke-width="3" stroke-linejoin="round"/><circle cx="140" cy="12" r="6" fill="#ffd23f"/><path d="M122 52 l16 -4 M128 40 l10 -3" stroke="#fff" stroke-width="3" opacity=".7"/>' },
+    { id: 'mago', sec: 'head', name: 'Sombrero de mago', icon: '🧙', dy: [0, -4], svg: () => '<polygon points="68,62 132,62 104,4" fill="#6b3fa0" stroke="#432468" stroke-width="3" stroke-linejoin="round"/><ellipse cx="100" cy="62" rx="44" ry="8" fill="#7d4cb8" stroke="#432468" stroke-width="3"/><polygon points="98,34 101,42 109,42 103,47 105,55 98,50 91,55 93,47 87,42 95,42" fill="#ffd23f"/>' },
+    { id: 'gorra', sec: 'head', name: 'Gorra', icon: '🧢', dy: [0, -2], svg: () => '<path d="M62 62 Q100 14 138 62Z" fill="#2b8cff" stroke="#1456a8" stroke-width="3" stroke-linejoin="round"/><path d="M124 60 L158 66 Q150 74 122 68Z" fill="#1c6fd1" stroke="#1456a8" stroke-width="3" stroke-linejoin="round"/><circle cx="100" cy="30" r="4" fill="#ffd23f"/>' },
+    { id: 'flores', sec: 'head', name: 'Corona de flores', icon: '🌸', dy: [0, -2], svg: () => ['#ff6fa5', '#ffd23f', '#b983ff', '#ff9f43', '#6ec6ff', '#ff6fa5'].map((c, k) => `<g transform="translate(${70 + k * 12} ${58 - Math.abs(k - 2.5) * -2 + 0})"><circle r="8" fill="${c}" stroke="#fff" stroke-width="2"/><circle r="3" fill="#fff6c9"/></g>`).join('') },
+
+    { id: 'gafas', sec: 'face', name: 'Gafas de sol', icon: '🕶️', dy: [0, -16], svg: () => '<rect x="63" y="88" width="32" height="26" rx="10" fill="#26324f"/><rect x="105" y="88" width="32" height="26" rx="10" fill="#26324f"/><path d="M95 99 L105 99" stroke="#26324f" stroke-width="4"/><path d="M69 94 l8 -2 M111 94 l8 -2" stroke="#fff" stroke-width="3" opacity=".6" stroke-linecap="round"/>' },
+    { id: 'redondas', sec: 'face', name: 'Gafas redondas', icon: '👓', dy: [0, -16], svg: () => '<circle cx="80" cy="100" r="16" fill="rgba(255,255,255,.3)" stroke="#5a3a22" stroke-width="4"/><circle cx="120" cy="100" r="16" fill="rgba(255,255,255,.3)" stroke="#5a3a22" stroke-width="4"/><path d="M96 98 Q100 94 104 98" stroke="#5a3a22" stroke-width="4" fill="none"/><path d="M64 98 L52 94 M136 98 L148 94" stroke="#5a3a22" stroke-width="4" stroke-linecap="round"/>' },
+    { id: 'antifaz', sec: 'face', name: 'Antifaz de héroe', icon: '🦸', dy: [0, -16], svg: () => '<path fill-rule="evenodd" d="M56 94 Q100 80 144 94 L146 112 Q124 106 100 112 Q76 106 54 112Z M80 100 m-11 0 a11 10 0 1 0 22 0 a11 10 0 1 0 -22 0 M120 100 m-11 0 a11 10 0 1 0 22 0 a11 10 0 1 0 -22 0" fill="#e5484d" stroke="#a3262b" stroke-width="3" stroke-linejoin="round"/>' },
+    { id: 'corazon', sec: 'face', name: 'Gafas de corazón', icon: '💖', dy: [0, -16], svg: () => heart(80) + heart(120) + '<path d="M92 98 Q100 92 108 98" stroke="#b81f5b" stroke-width="3" fill="none"/>' },
+    { id: 'bigote', sec: 'face', name: 'Bigote', icon: '🥸', dy: [0, -8], svg: () => '<path d="M72 124 Q86 108 100 122 Q114 108 128 124 Q114 134 100 127 Q86 134 72 124Z" fill="#5a3a22" stroke="#3a2412" stroke-width="2.5" stroke-linejoin="round"/>' },
+
+    { id: 'pajarita', sec: 'body', name: 'Pajarita', icon: '🎀', dy: [0, 0], svg: () => '<path d="M100 150 L78 138 L78 162Z" fill="#e5484d" stroke="#a3262b" stroke-width="3" stroke-linejoin="round"/><path d="M100 150 L122 138 L122 162Z" fill="#e5484d" stroke="#a3262b" stroke-width="3" stroke-linejoin="round"/><circle cx="100" cy="150" r="7" fill="#ff8a8a" stroke="#a3262b" stroke-width="3"/>' },
+    { id: 'bufanda', sec: 'body', name: 'Bufanda', icon: '🧣', dy: [0, 0], svg: () => '<rect x="64" y="136" width="72" height="16" rx="8" fill="#2b8cff" stroke="#1456a8" stroke-width="3"/><rect x="118" y="146" width="18" height="34" rx="6" fill="#2b8cff" stroke="#1456a8" stroke-width="3"/><path d="M76 138 v12 M92 138 v12 M108 138 v12 M124 148 v28" stroke="#fff" stroke-width="3" opacity=".7"/>' },
+    { id: 'medalla', sec: 'body', name: 'Medalla', icon: '🏅', dy: [0, 0], svg: () => '<path d="M86 138 L100 160 L114 138" stroke="#2b8cff" stroke-width="9" fill="none" stroke-linejoin="round"/><circle cx="100" cy="166" r="13" fill="#ffd23f" stroke="#e0a800" stroke-width="3"/><polygon points="100,158 103,164 109,164 104,168 106,175 100,171 94,175 96,168 91,164 97,164" fill="#fff6c9"/>' },
+    { id: 'collar', sec: 'body', name: 'Collar de flores', icon: '🌺', dy: [0, 0], svg: () => ['#ff6fa5', '#ffd23f', '#6ec6ff', '#b983ff', '#ff9f43', '#ff6fa5', '#ffd23f'].map((c, k) => `<g transform="translate(${70 + k * 10} ${148 + Math.sin(k / 6 * Math.PI) * 9})"><circle r="6.5" fill="${c}" stroke="#fff" stroke-width="2"/><circle r="2.2" fill="#fff6c9"/></g>`).join('') },
+    { id: 'corbata', sec: 'body', name: 'Corbata', icon: '👔', dy: [0, 0], svg: () => '<polygon points="93,142 107,142 110,152 100,154 90,152" fill="#2b8cff" stroke="#1456a8" stroke-width="3" stroke-linejoin="round"/><polygon points="92,154 108,154 112,176 100,186 88,176" fill="#2b8cff" stroke="#1456a8" stroke-width="3" stroke-linejoin="round"/><path d="M94 164 l12 -4 M93 172 l14 -4" stroke="#fff" stroke-width="3" opacity=".6"/>' },
+
+    { id: 'capa', sec: 'back', name: 'Capa roja', icon: '🦸', dy: [0, 0], back: true, svg: () => '<path d="M64 138 L136 138 L168 200 Q100 214 32 200Z" fill="#e5484d" stroke="#a3262b" stroke-width="3" stroke-linejoin="round"/>' },
+    { id: 'capaazul', sec: 'back', name: 'Capa azul', icon: '🧥', dy: [0, 0], back: true, svg: () => '<path d="M64 138 L136 138 L168 200 Q100 214 32 200Z" fill="#2b8cff" stroke="#1456a8" stroke-width="3" stroke-linejoin="round"/><path d="M100 146 L100 206" stroke="#7fbaff" stroke-width="3" opacity=".7"/>' },
+    { id: 'alashada', sec: 'back', name: 'Alas de hada', icon: '🧚', dy: [0, 0], back: true, svg: () => '<path d="M70 140 C16 84 8 150 38 160 C16 170 44 196 72 164Z" fill="#ffd1f0" stroke="#e08bc8" stroke-width="3" opacity=".92"/><path d="M130 140 C184 84 192 150 162 160 C184 170 156 196 128 164Z" fill="#cfeaff" stroke="#7fb8e8" stroke-width="3" opacity=".92"/>' },
+    { id: 'alasmurci', sec: 'back', name: 'Alas de murciélago', icon: '🦇', dy: [0, 0], back: true, svg: () => '<path d="M72 138 C34 92 10 110 8 140 C20 134 24 146 28 158 C38 150 46 156 52 170 C60 160 68 160 74 164Z" fill="#5b3a8c" stroke="#33205a" stroke-width="3" stroke-linejoin="round"/><path d="M128 138 C166 92 190 110 192 140 C180 134 176 146 172 158 C162 150 154 156 148 170 C140 160 132 160 126 164Z" fill="#5b3a8c" stroke="#33205a" stroke-width="3" stroke-linejoin="round"/>' },
+    { id: 'mochila', sec: 'back', name: 'Mochila', icon: '🎒', dy: [0, 0], back: true, svg: () => '<rect x="120" y="126" width="46" height="62" rx="16" fill="#ff9f43" stroke="#c46a12" stroke-width="3"/><rect x="128" y="154" width="30" height="20" rx="7" fill="#ffc78a" stroke="#c46a12" stroke-width="3"/><rect x="34" y="126" width="46" height="62" rx="16" fill="#ff9f43" stroke="#c46a12" stroke-width="3"/>' },
+  ];
+  const ITEM = {};
+  ITEMS.forEach((it) => { ITEM[it.id] = it; });
+  const emptyWorn = () => ({ head: '', face: '', body: '', back: '' });
+  const wornList = (worn) => (worn && !Array.isArray(worn) ? SECS.map((s) => worn[s.id]).filter(Boolean) : []);
+  function itemSVG(id, fam) {
+    const it = ITEM[id];
+    if (!it) return '';
+    const dy = fam === 'd' ? it.dy[1] : it.dy[0];
+    return dy ? `<g transform="translate(0 ${dy})">${it.svg()}</g>` : `<g>${it.svg()}</g>`;
+  }
   function mascotSVG(pid, worn) {
-    worn = worn || [];
-    const base = pid === 'peque' ? UNICORN : DINO;
-    const back = worn.map((id) => ACC_BACK[id] || '').join('');
-    const front = worn.map((id) => (ACC_FRONT[id] ? ACC_FRONT[id](pid) : '')).join('');
-    return base.replace('aria-hidden="true">', 'aria-hidden="true">' + back).replace(/<\/svg>\s*$/, front + '</svg>');
+    const hero = heroOf(pid);
+    const fam = HERO_FAM[hero];
+    const ids = wornList(worn);
+    const back = ids.filter((id) => ITEM[id].back).map((id) => itemSVG(id, fam)).join('');
+    const front = ids.filter((id) => !ITEM[id].back).map((id) => itemSVG(id, fam)).join('');
+    return HERO_SVG[hero].replace('aria-hidden="true">', 'aria-hidden="true">' + back).replace(/<\/svg>\s*$/, front + '</svg>');
   }
   const mascotHTML = (pid, cls, id, worn) => `<div class="mascot ${cls || 'idle'}"${id ? ` id="${id}"` : ''}>${mascotSVG(pid, worn !== undefined ? worn : P(pid).worn)}</div>`;
   /* Imagen de la mascota para dibujarla en los minijuegos */
@@ -677,19 +812,49 @@ const MG_BUNDLE = (function () {
     stopSpeech();
     setTheme('home');
     run = null;
-    const cards = Object.keys(Games.PROFILES).map((id) => {
-      const pr = Games.PROFILES[id];
-      const p = P(id);
-      const rk = rank(id);
-      return `<button class="profile ${id}" data-act="profile" data-id="${id}"><span class="em">${mascotHTML(id, 'idle')}</span><span><b>${esc(p.name)}</b><span>${pr.world}</span><span>${rk.icon} ${rk.title} · ⭐ ${totalStars(id)}</span></span></button>`;
+    const cards = Games.KIDS.map((kid) => {
+      const ws = worldsOf(kid).filter(worldUnlocked);
+      const id = ws[ws.length > 1 ? ws.length - 1 : 0];
+      const cur0 = ws.reduce((best, x) => (totalStars(x) >= totalStars(best) ? x : best), ws[0]);
+      const pr = Games.PROFILES[cur0];
+      const p = P(cur0);
+      const rk = rank(cur0);
+      const stars = ws.reduce((n, x) => n + totalStars(x), 0);
+      const sub = ws.length > 1 ? `${ws.length} mundos` : pr.world;
+      return `<button class="profile ${kid}" data-act="kid" data-id="${kid}"><span class="em">${mascotHTML(cur0, 'idle')}</span><span><b>${esc(P(kid).name)}</b><span>${sub}</span><span>${rk.icon} ${rk.title} · ⭐ ${stars}</span></span></button>`;
     }).join('');
     $app.innerHTML = `<div class="home">${header('', '')}<h1>Misión Aprende</h1><p class="sub">¿Quién juega hoy?</p>${cards}<button class="parent-link" data-act="parent">👨‍👩‍👧 Zona de padres</button></div>`;
+  }
+
+  function openKid(kid) {
+    fx.tap();
+    const ws = worldsOf(kid);
+    if (hasManyWorlds(kid)) renderWorlds(kid); else renderMap(ws[0]);
+  }
+
+  function renderWorlds(kid) {
+    stopSpeech();
+    run = null;
+    setTheme(kid);
+    const cards = worldsOf(kid).map((id) => {
+      const pr = Games.PROFILES[id];
+      const total = missionsOf(id).length;
+      if (!worldUnlocked(id)) {
+        const prev = worldsOf(kid).find((x) => Games.PROFILES[x].w === pr.w - 1);
+        return `<div class="world locked"><span class="em">🔒</span><span><b>${esc(pr.world)}</b><span>Se abre al completar ${pr.unlockAfter} misiones del mundo anterior (${doneCount(prev)}/${pr.unlockAfter})</span></span></div>`;
+      }
+      const rk = rank(id);
+      return `<button class="world ${id}" data-act="profile" data-id="${id}"><span class="em">${mascotHTML(id, 'idle')}</span><span><b>${esc(pr.world)}</b><span>${rk.icon} ${rk.title} · ⭐ ${totalStars(id)}</span><span>✅ ${doneCount(id)}/${total} misiones</span></span></button>`;
+    }).join('');
+    $app.innerHTML = `${header('Elige tu mundo', 'back-home')}<div class="worlds">${cards}</div>`;
   }
 
   /* ---------- Mapa de la isla ---------- */
   const DECO = {
     peque: ['🌈', '🌸', '☁️', '🌷', '⭐', '🦋'],
+    gatito: ['🐟', '🧶', '🌙', '🍃', '🐾', '☁️'],
     explorador: ['🌋', '🌴', '🦴', '🌿', '🪨', '☁️'],
+    dragon: ['🏰', '🔥', '⛰️', '🪙', '⚡', '☁️'],
   };
   const DECO_POS = [[3, 2], [86, 3], [2, 38], [88, 46], [3, 76], [86, 88]];
 
@@ -703,11 +868,11 @@ const MG_BUNDLE = (function () {
     const p = P(pid);
     let h = '';
     if (p.pending > 0) h += `<button class="btn giftbtn" data-act="gift">🎁 ¡Tienes ${p.pending > 1 ? p.pending + ' regalos' : 'un regalo'} para abrir!</button>`;
-    if (p.mg > 0 && MG.DEFS[pid].length) h += '<button class="btn giftbtn mgbtn" data-act="mg-choose">🎮 ¡Tienes un minijuego!</button>';
+    if (p.mg > 0 && MG.DEFS[kidOf(pid)].length) h += '<button class="btn giftbtn mgbtn" data-act="mg-choose">🎮 ¡Tienes un minijuego!</button>';
     return h;
   }
 
-  function renderMap(pid) {
+  function renderMap(pid, keepZone) {
     stopSpeech();
     cur.pid = pid;
     run = null;
@@ -731,18 +896,28 @@ const MG_BUNDLE = (function () {
       const cls = ['stone', u ? '' : 'locked', done ? 'done' : '', i === firstPending ? 'current' : ''].join(' ');
       return `<button class="${cls}" data-act="mission" data-i="${i}" ${u ? '' : 'disabled'}><span class="disc">${u ? m.icon : '🔒'}<span class="num">${i + 1}</span></span><span class="cap">${esc(m.title)}</span><span class="st">${done ? '★'.repeat(st) + '☆'.repeat(3 - st) : ''}</span></button>`;
     };
+    const zones = Math.ceil(ms.length / 10);
+    if (!keepZone || cur.zonePid !== pid || cur.zone === undefined) {
+      cur.zone = Math.min(zones - 1, Math.floor((firstPending >= 0 ? firstPending : ms.length - 1) / 10));
+      cur.zonePid = pid;
+    }
+    const z0 = cur.zone * 10;
+    const zms = ms.slice(z0, z0 + 10);
+    const zDone = zms.filter((m) => p.missions[m.id] && p.missions[m.id].done > 0).length;
+    const zname = (Games.ZONES[pid] || [])[cur.zone] || '';
     let rows = '';
-    for (let i = 0, r = 0; i < ms.length; i += 3, r++) {
-      let items = ms.slice(i, i + 3).map((m, k) => stone(m, i + k));
+    for (let i = 0, r = 0; i < zms.length; i += 3, r++) {
+      let items = zms.slice(i, i + 3).map((m, k) => stone(m, z0 + i + k));
       while (items.length < 3) items.push('<span class="stone ghost"></span>');
       rows += `<div class="maprow ${r % 2 ? 'rev' : ''}">${items.join('')}</div>`;
     }
     const deco = DECO[pid].map((e, k) => `<span class="deco" style="left:${DECO_POS[k][0]}%;top:${DECO_POS[k][1]}%">${e}</span>`).join('');
-    $app.innerHTML = `${header(esc(pr.world), 'back-home')}
+    $app.innerHTML = `${header(esc(pr.world), hasManyWorlds(kidOf(pid)) ? 'back-worlds' : 'back-home')}
       <div class="card"><div class="hero"><div class="avatar">${mascotHTML(pid, 'idle')}</div><div class="grow"><b>${esc(p.name)}</b><br>${rk.icon} ${rk.title}</div><div class="stars">⭐ ${totalStars(pid)}</div></div>
       <div class="today">Hoy: ${dots || '∞'} ${allowed === Infinity ? '' : `<span>${Math.min(playedToday(pid), allowed)}/${allowed}</span>`}</div>${gemsHTML(pid)}</div>${giftButtons(pid)}
-      <div class="islandmap" id="island"><svg class="path" id="islpath" aria-hidden="true"></svg>${deco}${rows}<div class="map-mascot" id="mapmascot">${mascotHTML(pid, 'idle')}</div></div>
-      <div class="row2"><button class="btn album-btn" data-act="album">${pid === 'peque' ? '📒 Pegatinas' : '🦴 Colección'}</button><button class="btn album-btn" data-act="wardrobe">👕 Mi armario</button></div>`;
+      <div class="zonebar"><button class="zbtn" data-act="zone-prev" ${cur.zone <= 0 ? 'disabled' : ''} aria-label="Zona anterior">◀</button><div class="zname"><b>${esc(zname)}</b><span>Zona ${cur.zone + 1} de ${zones} · ✅ ${zDone}/${zms.length}</span></div><button class="zbtn" data-act="zone-next" ${cur.zone >= zones - 1 ? 'disabled' : ''} aria-label="Zona siguiente">▶</button></div>
+      <div class="islandmap z${cur.zone % 5}" id="island"><svg class="path" id="islpath" aria-hidden="true"></svg>${deco}${rows}<div class="map-mascot" id="mapmascot">${mascotHTML(pid, 'idle')}</div></div>
+      <div class="row2"><button class="btn album-btn" data-act="album">${famOf(pid) === 'peque' ? '📒 Pegatinas' : '🦴 Colección'}</button><button class="btn album-btn" data-act="wardrobe">👕 Mi armario</button></div>`;
     requestAnimationFrame(drawMap);
   }
 
@@ -766,7 +941,8 @@ const MG_BUNDLE = (function () {
     const svg = document.getElementById('islpath');
     svg.setAttribute('viewBox', `0 0 ${mr.width.toFixed(1)} ${mr.height.toFixed(1)}`);
     svg.innerHTML = `<path d="${d}" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="9" stroke-linecap="round" stroke-dasharray="1 17"/>`;
-    const curDisc = map.querySelector('.stone.current .disc') || discs[discs.length - 1];
+    const doneDiscs = map.querySelectorAll('.stone.done .disc');
+    const curDisc = map.querySelector('.stone.current .disc') || doneDiscs[doneDiscs.length - 1] || discs[0];
     const cr = curDisc.getBoundingClientRect();
     const mm = document.getElementById('mapmascot');
     if (mm) {
@@ -780,7 +956,7 @@ const MG_BUNDLE = (function () {
     const p = P(pid);
     const all = missionsOf(pid).map((m) => m.sticker);
     const items = all.map((s) => (p.stickers.includes(s) ? `<div>${s}</div>` : '<div class="locked">?</div>')).join('');
-    $app.innerHTML = `${header(pid === 'peque' ? 'Mis pegatinas' : 'Mi colección', 'back-map')}<div class="card"><p>Has conseguido <b>${all.filter((s) => p.stickers.includes(s)).length}</b> de ${all.length}. ¡Completa misiones para ganar más!</p></div><div class="album">${items}</div>`;
+    $app.innerHTML = `${header(famOf(pid) === 'peque' ? 'Mis pegatinas' : 'Mi colección', 'back-map')}<div class="card"><p>Has conseguido <b>${all.filter((s) => p.stickers.includes(s)).length}</b> de ${all.length}. ¡Completa misiones para ganar más!</p></div><div class="album">${items}</div>`;
   }
 
   function renderDoneToday(pid) {
@@ -865,7 +1041,7 @@ const MG_BUNDLE = (function () {
       fx.bad();
       react('sad');
       const hint = document.getElementById('hint');
-      if (hint && st.hint && run.pid === 'explorador') {
+      if (hint && st.hint && famOf(run.pid) === 'explorador') {
         hint.textContent = '💡 ' + st.hint;
         speak(st.hint.replace(/[➕➖✖️]/g, ''));
       } else {
@@ -1210,8 +1386,10 @@ const MG_BUNDLE = (function () {
     }
     const msg = left > 0 ? '¡Buen trabajo! ¿Seguimos?' : '¡Misión cumplida por hoy! Mañana te esperan más aventuras.';
     const giftLine = every ? (gotGift ? '<p class="msg">🎁 ¡Has ganado un regalo!</p>' : `<p class="tiny">🎁 Te faltan ${every - p.gems} misiones para el regalo</p>`) : '';
-    const what = pid === 'peque' ? 'pegatina' : 'tesoro';
-    $app.innerHTML = `${header('', null)}<div class="card result">${mascotHTML(pid, 'idle happy')}<h1>¡Misión completada!</h1><div class="bigstars">${'⭐'.repeat(stars)}${'<span style="opacity:.25">⭐</span>'.repeat(3 - stars)}</div>${newSticker ? `<p>Nuevo ${what}:</p><div class="sticker-new">${newSticker}</div>` : ''}${levelUp ? `<div class="level-up">${rankNow.icon} ¡Subes de nivel: ${rankNow.title}!</div>` : ''}<p class="msg">${msg}</p>${giftLine}<div class="btns">${btns}</div></div>`;
+    const what = famOf(pid) === 'peque' ? 'pegatina' : 'tesoro';
+    const nextW = worldsOf(kidOf(pid)).find((x) => Games.PROFILES[x].w === Games.PROFILES[pid].w + 1);
+    const worldLine = nextW && Games.PROFILES[nextW].unlockAfter === doneCount(pid) && rec.done === 1 ? `<p class="msg">🌍 ¡Se ha abierto un mundo nuevo: ${esc(Games.PROFILES[nextW].world)}!</p>` : '';
+    $app.innerHTML = `${header('', null)}<div class="card result">${mascotHTML(pid, 'idle happy')}<h1>¡Misión completada!</h1><div class="bigstars">${'⭐'.repeat(stars)}${'<span style="opacity:.25">⭐</span>'.repeat(3 - stars)}</div>${newSticker ? `<p>Nuevo ${what}:</p><div class="sticker-new">${newSticker}</div>` : ''}${levelUp ? `<div class="level-up">${rankNow.icon} ¡Subes de nivel: ${rankNow.title}!</div>` : ''}<p class="msg">${msg}</p>${giftLine}${worldLine}<div class="btns">${btns}</div></div>`;
     window.scrollTo(0, 0);
     setTheme(pid);
     fx.win();
@@ -1248,21 +1426,21 @@ const MG_BUNDLE = (function () {
   function openGift() {
     const { pid, test } = gift;
     const p = P(pid);
-    const pool = test ? ACCS : ACCS.filter((a) => !p.accs.includes(a.id));
+    const pool = test ? ITEMS : ITEMS.filter((a) => !p.accs.includes(a.id));
     const acc = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
     if (!test) {
       p.pending = Math.max(0, (p.pending || 0) - 1);
       p.mg = (p.mg || 0) + 1;
-      if (acc) { p.accs.push(acc.id); p.worn.push(acc.id); }
+      if (acc) { p.accs.push(acc.id); p.worn[acc.sec] = acc.id; }
       save();
     }
-    const wornShow = test ? (acc ? [acc.id] : []) : p.worn;
-    const title = acc ? `¡Nuevo: ${acc.name}!` : '¡Superpremio! Ya tienes todo el armario';
+    const wornShow = test ? Object.assign(emptyWorn(), acc ? { [acc.sec]: acc.id } : {}) : p.worn;
+    const title = acc ? `¡Nuevo: ${acc.name}!` : '¡Superpremio! Ya tienes toda la ropa';
     let btns = '';
     if (test) {
       btns = '<button class="btn" data-act="to-parent">⬅️ Volver a la zona de padres</button>';
     } else {
-      btns = '<button class="btn" data-act="mg-choose">🎮 Jugar un minijuego</button>'
+      btns = (MG.DEFS[kidOf(pid)].length ? '<button class="btn" data-act="mg-choose">🎮 Jugar un minijuego</button>' : '')
         + (p.pending > 0 ? '<button class="btn alt" data-act="gift">🎁 Abrir otro regalo</button>' : '')
         + '<button class="btn alt" data-act="wardrobe">👕 Mi armario</button><button class="btn alt" data-act="back-map">🗺️ Volver al mapa</button>';
     }
@@ -1275,12 +1453,17 @@ const MG_BUNDLE = (function () {
 
   function renderWardrobe(pid) {
     const p = P(pid);
-    const items = ACCS.map((a) => {
-      if (!p.accs.includes(a.id)) return '<div class="acc locked"><span>🔒</span><b>???</b><small>Se gana con regalos</small></div>';
-      const on = p.worn.includes(a.id);
-      return `<button class="acc ${on ? 'on' : ''}" data-act="wear" data-a="${a.id}"><span>${a.icon}</span><b>${a.name}</b><small>${on ? '✅ Puesto' : 'Ponérmelo'}</small></button>`;
+    const sections = SECS.map((sec) => {
+      const its = ITEMS.filter((a) => a.sec === sec.id);
+      const cells = its.map((a) => {
+        if (!p.accs.includes(a.id)) return '<div class="acc locked"><span>🔒</span><small>???</small></div>';
+        const on = p.worn[sec.id] === a.id;
+        return `<button class="acc ${on ? 'on' : ''}" data-act="wear" data-a="${a.id}"><span>${a.icon}</span><small>${esc(a.name)}</small></button>`;
+      }).join('');
+      const have = its.filter((a) => p.accs.includes(a.id)).length;
+      return `<div class="secbox"><h3>${sec.icon} ${sec.name} <small>${have}/${its.length}</small></h3><div class="accs">${cells}</div></div>`;
     }).join('');
-    $app.innerHTML = `${header('Mi armario', 'back-map')}<div class="card wardrobe">${mascotHTML(pid, 'idle')}<p class="tiny">Has conseguido ${p.accs.length} de ${ACCS.length}. ¡Ábrelos con los regalos!</p><div class="accs">${items}</div></div>`;
+    $app.innerHTML = `${header('Mi armario', 'back-map')}<div class="card wardrobe">${mascotHTML(pid, 'idle')}<p class="tiny">Tienes ${p.accs.length} de ${ITEMS.length} prendas. ¡Gana más abriendo regalos! Toca una prenda para ponértela o quitártela.</p></div>${sections}`;
   }
 
   /* ---------- Minijuegos ---------- */
@@ -1292,13 +1475,13 @@ const MG_BUNDLE = (function () {
   function renderMgChoose(pid) {
     cur.pid = pid;
     setTheme(pid);
-    const defs = MG.DEFS[pid];
+    const defs = MG.DEFS[kidOf(pid)];
     $app.innerHTML = `${header('🎮 Elige un minijuego', 'back-map')}<div class="mgchoose">${defs.map((d) => `<button class="mgcard" data-act="mg-pick" data-id="${d.id}"><span class="ico">${d.icon}</span><b>${esc(d.title)}</b><small>${esc(d.how)}</small></button>`).join('')}</div><p class="tiny">Dura 1 minuto</p>`;
     setTimeout(() => speak('Elige un minijuego'), 250);
   }
 
   function startMinigame(pid, id, opts) {
-    const def = MG.DEFS[pid].find((d) => d.id === id);
+    const def = MG.DEFS[kidOf(pid)].find((d) => d.id === id);
     if (!def) return;
     cur.pid = pid;
     setTheme(pid);
@@ -1452,11 +1635,12 @@ const MG_BUNDLE = (function () {
         <select id="test-${id}">${missionsOf(id).map((m, k) => `<option value="${k}">${k + 1}. ${esc(m.title)}</option>`).join('')}</select>
         <div class="row"><button class="btn small" data-act="p-test" data-id="${id}">▶ Probar esta misión</button></div>
         <label>🎮 Probar un minijuego o un regalo</label>
-        <select id="testmg-${id}">${MG.DEFS[id].map((d) => `<option value="${d.id}">${d.icon} ${esc(d.title)}</option>`).join('')}</select>
+        <select id="testmg-${id}">${MG.DEFS[kidOf(id)].map((d) => `<option value="${d.id}">${d.icon} ${esc(d.title)}</option>`).join('')}</select>
         <div class="row"><button class="btn small" data-act="p-minigame" data-id="${id}">▶ Jugar minijuego</button><button class="btn small alt" data-act="p-gift-test" data-id="${id}">🎁 Probar un regalo</button></div>
-        <label>Misiones por día</label>
+        ${id !== kidOf(id) ? '<p class="note">El límite diario se comparte entre los mundos de este niño (se cambia en el primer mundo).</p>' : `<label>Misiones por día (entre todos sus mundos)</label>
         <select data-act="p-limit" data-id="${id}">${[[3, '3'], [5, '5'], [8, '8'], [10, '10'], [15, '15'], [20, '20'], [0, 'Sin límite']].map(([v, l]) => `<option value="${v}" ${lim === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
-        <div class="row"><button class="btn small alt" data-act="p-extra" data-id="${id}">➕ Una misión más hoy</button>
+        <div class="row"><button class="btn small alt" data-act="p-extra" data-id="${id}">➕ Una misión más hoy</button></div>`}
+        <div class="row">
         <button class="btn small alt" data-act="p-unlock" data-id="${id}">${p.unlockAll ? '🔒 Volver al orden normal' : '🔓 Desbloquear todas'}</button>
         <button class="btn small danger" data-act="p-reset" data-id="${id}">🗑️ Borrar progreso</button></div></div>`;
     }).join('');
@@ -1470,6 +1654,7 @@ const MG_BUNDLE = (function () {
         <label>Restaurar desde un código</label><textarea id="bk-in" placeholder="Pega aquí el código"></textarea>
         <div class="row"><button class="btn small alt" data-act="p-restore">♻️ Restaurar</button></div></div>
       <div class="card"><h2>⚙️ Otros ajustes</h2>
+        <div class="row"><button class="btn small alt" data-act="p-worlds">${S.settings.worldsOpen ? '🌍 Mundos: todos abiertos' : '🌍 Mundos: se abren jugando (pulsa para abrir todos)'}</button></div>
         <label>🎁 Regalo cada cuántas misiones</label><select data-act="p-reward">${[[3, '3'], [5, '5'], [8, '8'], [0, 'Sin regalos']].map(([v, l]) => `<option value="${v}" ${S.settings.rewardEvery === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
         <label>Voz</label><select data-act="p-voice"><option value="">Automática (la más natural)</option>${vs.map((v) => `<option value="${esc(v.name)}" ${S.settings.voice === v.name ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>
         <label>Velocidad de la voz</label><select data-act="p-rate">${[[0.8, 'Lenta'], [0.92, 'Normal'], [1.05, 'Rápida']].map(([v, l]) => `<option value="${v}" ${Math.abs((S.settings.rate || 0.92) - v) < 0.01 ? 'selected' : ''}>${l}</option>`).join('')}</select>
@@ -1489,6 +1674,11 @@ const MG_BUNDLE = (function () {
     const id = t.dataset.id;
     switch (a) {
       case 'profile': fx.tap(); renderMap(id); break;
+      case 'kid': openKid(id); break;
+      case 'p-worlds': S.settings.worldsOpen = !S.settings.worldsOpen; save(); renderParent(); break;
+      case 'back-worlds': renderWorlds(kidOf(cur.pid)); break;
+      case 'zone-prev': cur.zone = Math.max(0, cur.zone - 1); renderMap(cur.pid, true); break;
+      case 'zone-next': cur.zone += 1; renderMap(cur.pid, true); break;
       case 'back-home': renderHome(); break;
       case 'back-map': renderMap(cur.pid); break;
       case 'mission': startMission(cur.pid, +t.dataset.i); break;
@@ -1575,7 +1765,8 @@ const MG_BUNDLE = (function () {
       case 'wear': {
         const pp = P(cur.pid);
         const a = t.dataset.a;
-        pp.worn = pp.worn.includes(a) ? pp.worn.filter((x) => x !== a) : pp.worn.concat(a);
+        const sec = ITEM[a].sec;
+        pp.worn[sec] = pp.worn[sec] === a ? '' : a;
         save(); renderWardrobe(cur.pid); break;
       }
       case 'mg-choose': if (P(cur.pid).mg > 0) renderMgChoose(cur.pid); else renderMap(cur.pid); break;

@@ -592,66 +592,329 @@ const Games = (function () {
     return { tag: 'problemas', story: { text, visual }, steps };
   }
 
-  /* ---------- Perfiles y misiones ---------- */
+  /* ---------- Generadores nuevos (más variedad para los mundos largos) ---------- */
+  // Suma con rango: carry 'no' = sin llevada, 'si' = con llevada, 'mix' = cualquiera
+  function sumNQ(max, carry) {
+    let a, b;
+    const lo = max <= 20 ? 2 : 11;
+    for (let t = 0; t < 400; t++) {
+      a = rnd(lo, Math.max(lo, max - lo));
+      b = rnd(lo, Math.max(lo, max - a));
+      const c = (a % 10) + (b % 10) >= 10;
+      if (a + b > max) continue;
+      if (max > 20 && carry === 'no' && c) continue;
+      if (carry === 'si' && !c) continue;
+      break;
+    }
+    const ans = a + b;
+    return {
+      tag: 'sumas',
+      steps: [{ tag: 'sumas', prompt: `${a} + ${b} = ?`, speak: `${a} más ${b}. ¿Cuánto es?`, layout: 'num', options: numOptions(ans, [ans + 10, ans - 10, ans + 1, ans - 1], { min: 0 }) }],
+    };
+  }
+  // Resta sin llevadas (el niño aún no las ha estudiado)
+  function subNQ(max) {
+    let a, b;
+    for (let t = 0; t < 400; t++) {
+      a = rnd(max > 20 ? 21 : 6, max);
+      b = rnd(2, a - 2);
+      if (max <= 20 || b % 10 <= a % 10) break;
+    }
+    const ans = a - b;
+    return {
+      tag: 'restas',
+      steps: [{ tag: 'restas', prompt: `${a} − ${b} = ?`, speak: `${a} menos ${b}. ¿Cuánto es?`, layout: 'num', options: numOptions(ans, [ans + 10, ans - 10, ans + 1, ans - 1], { min: 0 }) }],
+    };
+  }
+  function sum3Q(max) {
+    let a, b, c;
+    for (let t = 0; t < 300; t++) {
+      a = rnd(2, Math.floor(max / 2));
+      b = rnd(2, Math.floor(max / 3));
+      c = rnd(2, Math.floor(max / 3));
+      if (a + b + c <= max) break;
+    }
+    const ans = a + b + c;
+    return {
+      tag: 'sumas',
+      steps: [{ tag: 'sumas', prompt: `${a} + ${b} + ${c} = ?`, speak: `${a} más ${b} más ${c}. ¿Cuánto es?`, layout: 'num', options: numOptions(ans, [ans + 1, ans - 1, ans + 10, ans - 10], { min: 0 }) }],
+    };
+  }
+  function compareQ(max) {
+    const a = rnd(1, max);
+    let b = rnd(1, max);
+    while (b === a) b = rnd(1, max);
+    const big = Math.random() < 0.5;
+    const ans = big ? Math.max(a, b) : Math.min(a, b);
+    const w = big ? 'MAYOR' : 'MENOR';
+    return {
+      tag: 'comparar',
+      steps: [{
+        tag: 'comparar',
+        prompt: `¿Qué número es ${w}?`,
+        speak: `¿Qué número es ${big ? 'mayor' : 'menor'}?`,
+        layout: 'num',
+        options: shuffle([a, b]).map((v) => ({ html: String(v), correct: v === ans })),
+      }],
+    };
+  }
+  function doubleQ(max) {
+    const half = Math.random() < 0.5;
+    const n = rnd(2, max);
+    const ans = half ? n : n * 2;
+    const q = half ? `La mitad de ${n * 2}` : `El doble de ${n}`;
+    return {
+      tag: 'dobles',
+      steps: [{
+        tag: 'dobles',
+        prompt: `${q} es...`,
+        speak: `${q} es... `,
+        layout: 'num',
+        options: numOptions(ans, [ans + 1, ans - 1, half ? n * 2 : n], { min: 1 }),
+      }],
+    };
+  }
+  function placeQ(max) {
+    const n = rnd(11, max);
+    const tens = Math.random() < 0.5;
+    const ans = tens ? Math.floor(n / 10) : n % 10;
+    const q = tens ? `En el número ${n}, ¿cuántas DECENAS hay?` : `En el número ${n}, ¿cuántas UNIDADES hay?`;
+    return {
+      tag: 'decenas',
+      steps: [{
+        tag: 'decenas',
+        prompt: q,
+        speak: tens ? `En el número ${n}, ¿cuántas decenas hay?` : `En el número ${n}, ¿cuántas unidades hay?`,
+        layout: 'num',
+        options: numOptions(ans, [tens ? n % 10 : Math.floor(n / 10), ans + 1, ans - 1], { min: 0 }),
+      }],
+    };
+  }
+  function neighborQ(max) {
+    const n = rnd(2, max - 1);
+    const kind = pick(['antes', 'despues', 'entre']);
+    let prompt, ans, visual = '';
+    if (kind === 'antes') { prompt = `¿Qué número va ANTES del ${n}?`; ans = n - 1; }
+    else if (kind === 'despues') { prompt = `¿Qué número va DESPUÉS del ${n}?`; ans = n + 1; }
+    else { prompt = '¿Qué número va en medio?'; ans = n; visual = `<div class="series"><span class="chip">${n - 1}</span><span class="chip blank">?</span><span class="chip">${n + 1}</span></div>`; }
+    return {
+      tag: 'vecinos',
+      steps: [{ tag: 'vecinos', visual, prompt, speak: prompt.replace(/[¿?]/g, '') + '?', layout: 'num', options: numOptions(ans, [ans + 1, ans - 1, ans + 2, ans - 2], { min: 0 }) }],
+    };
+  }
+  function moneyQ(max) {
+    const pool = [1, 2, 5, 10, 20];
+    const items = [];
+    let total = 0;
+    const n = rnd(2, 4);
+    for (let i = 0; i < n; i++) {
+      const opts = pool.filter((x) => total + x <= max);
+      const v = opts.length ? pick(opts) : 1;
+      items.push(v);
+      total += v;
+    }
+    const chips = items.map((v) => `<span class="chip coin">${v} €</span>`).join('');
+    return {
+      tag: 'dinero',
+      steps: [{
+        tag: 'dinero',
+        visual: `<div class="series">${chips}</div>`,
+        prompt: '¿Cuánto dinero hay en total?',
+        speak: '¿Cuánto dinero hay en total?',
+        layout: 'num',
+        options: numOptions(total, [total + 1, total - 1, total + 5, total - 5], { min: 1 }),
+      }],
+    };
+  }
+  // Para la peque: reconocer el número y comparar cantidades
+  function bigNumQ(max) {
+    const n = rnd(1, max);
+    return {
+      tag: 'numeros',
+      steps: [{
+        tag: 'numeros',
+        visual: `<div class="bignum">${n}</div>`,
+        prompt: '¿Qué número es este?',
+        speak: '¿Qué número es este?',
+        layout: 'num',
+        options: numOptions(n, [n + 1, n - 1, n + 2], { min: 0, max: max + 2 }),
+      }],
+    };
+  }
+  function moreQ(max) {
+    const a = rnd(1, max);
+    let b = rnd(1, max);
+    while (b === a) b = rnd(1, max);
+    const f = pick(ANIMALS);
+    const more = Math.random() < 0.6;
+    const side = more ? (a > b ? 'a' : 'b') : (a < b ? 'a' : 'b');
+    const w = more ? 'MÁS' : 'MENOS';
+    return {
+      tag: 'comparar-visual',
+      steps: [{
+        tag: 'comparar-visual',
+        prompt: `¿Dónde hay ${w}?`,
+        speak: `¿Dónde hay ${more ? 'más' : 'menos'}?`,
+        layout: 'groups',
+        options: [
+          { html: `<span class="grp">${f.e.repeat(a)}</span>`, correct: side === 'a' },
+          { html: `<span class="grp">${f.e.repeat(b)}</span>`, correct: side === 'b' },
+        ],
+      }],
+    };
+  }
+  const PAT_SETS = [['🔴', '🔵'], ['🟡', '🟢'], ['🍎', '🍌'], ['🐶', '🐱'], ['⭐', '🌙'], ['🌸', '🌿']];
+  function patternQ(abc) {
+    const set = shuffle(pick(PAT_SETS).concat(abc ? ['🟣'] : [])).slice(0, abc ? 3 : 2);
+    const seq = [];
+    for (let i = 0; i < (abc ? 6 : 5); i++) seq.push(set[i % set.length]);
+    const k = seq.length - 1;
+    const ans = seq[k];
+    const chips = seq.map((v, i) => (i === k ? '<span class="chip blank">?</span>' : `<span class="chip">${v}</span>`)).join('');
+    const others = set.filter((x) => x !== ans);
+    return {
+      tag: 'patrones',
+      steps: [{
+        tag: 'patrones',
+        visual: `<div class="series">${chips}</div>`,
+        prompt: '¿Qué viene después?',
+        speak: '¿Qué sigue en la fila?',
+        layout: 'num',
+        options: shuffle([ans, ...others.slice(0, 2)]).map((v) => ({ html: `<span class="grp">${v}</span>`, correct: v === ans })),
+      }],
+    };
+  }
+
+  /* ---------- Perfiles, mundos y misiones ---------- */
+  // Cada mundo es un "perfil" propio (progreso, ropa y regalos propios) que pertenece a un niño (kid)
   const PROFILES = {
-    peque: { id: 'peque', defaultName: 'Peque', emoji: '🦄', world: 'El Reino del Unicornio', age: 4 },
-    explorador: { id: 'explorador', defaultName: 'Explorador', emoji: '🦖', world: 'La Isla de los Dinos', age: 7 },
+    peque: { id: 'peque', kid: 'peque', hero: 'unicorn', family: 'peque', defaultName: 'Peque', emoji: '🦄', world: 'El Reino del Unicornio', age: 4, w: 0 },
+    gatito: { id: 'gatito', kid: 'peque', hero: 'cat', family: 'peque', defaultName: 'Gatita', emoji: '🐱', world: 'El Bosque de los Gatitos', age: 4, w: 1, unlockAfter: 50 },
+    explorador: { id: 'explorador', kid: 'explorador', hero: 'dino', family: 'explorador', defaultName: 'Explorador', emoji: '🦖', world: 'La Isla de los Dinos', age: 7, w: 0 },
+    dragon: { id: 'dragon', kid: 'explorador', hero: 'dragon', family: 'explorador', defaultName: 'Explorador', emoji: '🐲', world: 'El Reino de los Dragones', age: 7, w: 1, unlockAfter: 50 },
   };
+  const KIDS = ['peque', 'explorador'];
 
-  const MISSIONS = {
-    peque: [
-      { id: 'p1', title: 'Cuenta los animales', icon: '🐮', sticker: '🦄', rounds: 5, gen: () => countQ(3) },
-      { id: 'p2', title: 'Busca el grupo', icon: '🐷', sticker: '🐮', rounds: 5, gen: () => groupQ(3) },
-      { id: 'p13', title: 'Mete en el cesto', icon: '🧺', sticker: '🐷', rounds: 4, gen: () => dragCountQ(3) },
-      { id: 'p3', title: 'Los colores', icon: '🌈', sticker: '🐔', rounds: 5, gen: () => colorQ(4) },
-      { id: 'p14', title: 'Une números y animales', icon: '🔗', sticker: '🐑', rounds: 3, gen: () => connectNumGroupQ(3, 3) },
-      { id: 'p4', title: 'Cuenta hasta 5', icon: '🐔', sticker: '🐴', rounds: 5, gen: () => countQ(5) },
-      { id: 'p5', title: 'Junta las frutas', icon: '🍎', sticker: '🐶', rounds: 5, gen: () => sumVisualQ(4) },
-      { id: 'p6', title: 'Parejas de animales', icon: '🧠', sticker: '🐱', kind: 'memory', pairs: 3 },
-      { id: 'p15', title: 'Cada cosa en su sitio', icon: '📦', sticker: '🐰', rounds: 3, gen: () => dragSortQ() },
-      { id: 'p7', title: 'Las formas', icon: '🔺', sticker: '🦆', rounds: 5, gen: () => shapeQ() },
-      { id: 'p16', title: 'Une las sombras', icon: '🌑', sticker: '🐸', rounds: 3, gen: () => connectShadowQ(3) },
-      { id: 'p17', title: 'Cesto grande', icon: '🧺', sticker: '🐘', rounds: 4, gen: () => dragCountQ(6) },
-      { id: 'p18', title: 'Encaja las formas', icon: '🧩', sticker: '🦁', rounds: 3, gen: () => dragShapeQ() },
-      { id: 'p8', title: 'Grupos hasta 5', icon: '🐑', sticker: '🐒', rounds: 5, gen: () => groupQ(5) },
-      { id: 'p9', title: 'Más frutas', icon: '🍌', sticker: '🐢', rounds: 5, gen: () => sumVisualQ(6) },
-      { id: 'p10', title: 'Parejas grandes', icon: '🃏', sticker: '🐻', kind: 'memory', pairs: 4 },
-      { id: 'p11', title: 'Cuenta hasta 10', icon: '🐘', sticker: '🦒', rounds: 5, gen: () => countQ(10) },
-      { id: 'p12', title: 'Fiesta de frutas', icon: '🍓', sticker: '🌈', rounds: 5, gen: () => sumVisualQ(10) },
-    ],
-    explorador: [
-      { id: 'h1', title: 'Sumas hasta 20', icon: '➕', sticker: '🦖', rounds: 6, gen: () => sumQ(20, false) },
-      { id: 'h2', title: 'Restas hasta 20', icon: '➖', sticker: '🦕', rounds: 6, gen: () => subQ(20, false) },
-      { id: 'h3', title: 'Problemas: ¿más o menos?', icon: '🔍', sticker: '🥚', rounds: 4, gen: () => problemQ(1) },
-      { id: 'h15', title: 'Ordena los números', icon: '📶', sticker: '🌋', rounds: 4, gen: () => dragOrderQ(20, false) },
-      { id: 'h4', title: 'El número escondido', icon: '🕵️', sticker: '🦴', rounds: 6, gen: () => missingQ(20) },
-      { id: 'h5', title: 'Problemas: ¿qué cuenta?', icon: '🧩', sticker: '🌴', rounds: 4, gen: () => problemQ(2) },
-      { id: 'h16', title: 'Une cuentas y resultados', icon: '🔗', sticker: '🪨', rounds: 3, gen: () => connectMathQ(20, 4, 'unir-cuentas') },
-      { id: 'h6', title: 'Sumas con llevada', icon: '🚀', sticker: '🔥', rounds: 6, gen: () => sumQ(100, true) },
-      { id: 'h7', title: 'Series de números', icon: '🔢', sticker: '⭐', rounds: 6, gen: () => seriesQ([2, 5, 10], false) },
-      { id: 'h8', title: 'Problemas: comparar y total', icon: '⚖️', sticker: '🏆', rounds: 4, gen: () => problemQ(3) },
-      { id: 'h10', title: 'El reloj', icon: '⏰', sticker: '🪐', rounds: 6, gen: () => clockQ(1) },
-      { id: 'h17', title: 'Ordena de mayor a menor', icon: '📉', sticker: '👑', rounds: 4, gen: () => dragOrderQ(100, true) },
-      { id: 'h12', title: 'Problemas de dino', icon: '🦖', sticker: '🦎', rounds: 4, gen: () => problemQ(4) },
-      { id: 'h14', title: 'El reloj experto', icon: '🕰️', sticker: '🚀', rounds: 6, gen: () => clockQ(2) },
-    ],
+  const EMOJI_POOL = ['🦄', '🐮', '🐷', '🐔', '🐑', '🐴', '🐶', '🐱', '🐰', '🦆', '🐸', '🐘', '🦁', '🐒', '🐢', '🐻', '🦒', '🌈', '🦖', '🦕', '🥚', '🌋', '🦴', '🌴', '🪨', '🔥', '⭐', '🏆', '🪐', '👑', '🦎', '🚀',
+    '🐯', '🐨', '🐼', '🐧', '🐦', '🦉', '🦋', '🐝', '🐞', '🐌', '🐙', '🐬', '🐳', '🦈', '🐊', '🦓', '🦘', '🦔', '🦦', '🦥', '🦩', '🦜', '🦢', '🐿️', '🍎', '🍌', '🍓', '🍇', '🍉', '🍒', '🥕', '🌽',
+    '🍄', '🌻', '🌷', '🌸', '🌵', '🌲', '🍀', '🌙', '☀️', '☁️', '⚡', '❄️', '🔔', '🎈', '🎁', '🎨', '🎸', '🥁', '🎺', '⚽', '🏀', '🎯', '🧩', '🚂', '🚗', '🚒', '✈️', '⛵', '🏰', '🗻', '💎', '🧲',
+    '🔮', '🪄', '📚', '🔭', '🧭', '🗝️', '🪁', '🎠', '🍦', '🧁', '🍪', '🥐', '🍕', '🍩', '🍯', '🥝', '🍍', '🥭', '🍑', '🍋', '🐉', '🪺', '🦚', '🦀'];
+  const stickerFor = (w, n) => EMOJI_POOL[(n + w * 37) % EMOJI_POOL.length];
+
+  const at = (arr, T) => arr[Math.min(T, arr.length - 1)];
+  const T20 = (head, last) => head.concat(Array(20 - head.length).fill(last));
+
+  const ZONES = {
+    explorador: ['Playa de huevos', 'Selva verde', 'Cueva de huesos', 'Valle de helechos', 'Pantano burbujeante', 'Volcán dormido', 'Cañón rojo', 'Nubes altas', 'Cima del volcán', 'Nido del Rey'],
+    dragon: ['Aldea de los dragoncitos', 'Bosque encantado', 'Montañas de hielo', 'Lago de fuego', 'Cueva del tesoro', 'Castillo de piedra', 'Cielo de tormenta', 'Isla flotante', 'Torre del mago', 'Trono del dragón'],
+    peque: ['Prado de flores', 'Bosque de colores', 'Lago de cristal', 'Colina del arcoíris', 'Jardín de mariposas', 'Nube de algodón', 'Valle de estrellas', 'Cascada mágica', 'Castillo de caramelo', 'Cima del unicornio'],
+    gatito: ['Jardín de la casita', 'Bosque de hojas', 'Colina de luciérnagas', 'Estanque de peces', 'Granja de ovillos', 'Tejados de la luna', 'Cueva de las estrellas', 'Playa de conchas', 'Parque de juegos', 'Palacio de los gatitos'],
   };
+  const BOSS = { explorador: '¡Jefe!', dragon: '¡Jefe!', peque: '¡Gran premio!', gatito: '¡Gran premio!' };
 
+  // Misiones del niño mayor (7 años): sumas, restas, problemas, reloj...
+  function buildBoy(pid) {
+    const w = PROFILES[pid].w;
+    const list = [];
+    for (let z = 0; z < 10; z++) {
+      const T = w * 10 + z;
+      const sMax = at(T20([20, 20, 30, 30, 50, 50, 100], 100), T);
+      const carry = T < 5 ? 'no' : 'mix';
+      const pl = at(T20([1, 1, 2, 2, 2, 3, 3, 3, 4, 4], 4), T);
+      const pl2 = Math.max(1, pl - (T % 2 ? 1 : 0));
+      const mMax = at(T20([10, 20, 20, 30, 50, 50, 100], 100), T);
+      const oMax = at(T20([20, 20, 30, 50, 50, 100, 100, 100, 200, 500], 1000), T);
+      const steps = at([[2, 5, 10], [2, 5, 10], [2, 3, 5, 10], [2, 3, 4, 5, 10], [2, 3, 4, 5, 10]], T);
+      const cm = Math.min(sMax, 20);
+      const varieties = [
+        { t: 'El número escondido', i: '🕵️', g: () => missingQ(mMax) },
+        { t: 'Sumas de tres números', i: '3️⃣', g: () => sum3Q(Math.min(sMax, 50)) },
+        { t: '¿Cuál es mayor o menor?', i: '⚖️', g: () => compareQ(Math.min(oMax, 100)) },
+        { t: 'Dobles y mitades', i: '✌️', g: () => doubleQ(Math.min(5 + T * 2, 25)) },
+        { t: 'Decenas y unidades', i: '🔟', g: () => placeQ(Math.min(sMax, 99)) },
+        { t: 'Antes, después y en medio', i: '↔️', g: () => neighborQ(Math.min(oMax, 100)) },
+        { t: 'Monedas y euros', i: '💶', g: () => moneyQ(Math.min(10 + T * 3, 50)) },
+        { t: 'Series de números', i: '🔢', g: () => seriesQ(steps, T >= 3) },
+      ];
+      const vA = varieties[(z + w * 3) % 8];
+      const vB = varieties[(z + w * 3 + 4) % 8];
+      const slots = [
+        { t: `Sumas hasta ${sMax}`, i: '➕', g: () => sumNQ(sMax, carry) },
+        { t: `Restas hasta ${sMax}`, i: '➖', g: () => subNQ(sMax) },
+        { t: pl <= 1 ? 'Problemas: ¿más o menos?' : pl === 2 ? 'Problemas: ¿qué cuenta?' : 'Problemas: comparar y total', i: '🔍', g: () => problemQ(pl), r: 4 },
+        { t: vA.t, i: vA.i, g: vA.g },
+        z % 2 ? { t: 'Ordena los números', i: '📶', g: () => dragOrderQ(Math.min(oMax, 100), T % 2 === 1), r: 4 } : { t: 'Une cuentas y resultados', i: '🔗', g: () => connectMathQ(cm, 3 + (T > 4 ? 1 : 0), 'unir-cuentas'), r: 3 },
+        { t: 'Problemas de aventura', i: '🧩', g: () => problemQ(pl2), r: 4 },
+        { t: vB.t, i: vB.i, g: vB.g },
+        z >= 2 ? { t: z >= 6 ? 'El reloj experto' : 'El reloj', i: z >= 6 ? '🕰️' : '⏰', g: () => clockQ(z >= 5 ? 2 : 1) } : { t: 'Sumas y restas', i: '🧮', g: () => (Math.random() < 0.5 ? sumNQ(sMax, carry) : subNQ(sMax)) },
+        { t: 'Sumas y restas mezcladas', i: '🧮', g: () => (Math.random() < 0.5 ? sumNQ(sMax, carry) : subNQ(sMax)), r: 8 },
+      ];
+      const gens = slots.map((x) => x.g).concat([() => problemQ(pl)]);
+      slots.forEach((x, k) => list.push({ title: x.t, icon: x.i, rounds: x.r || 6, gen: x.g, zone: z }));
+      list.push({ title: `${BOSS[pid]} ${ZONES[pid][z]}`, icon: '🏆', rounds: 8, gen: () => pick(gens)(), zone: z, boss: true });
+    }
+    return list;
+  }
+
+  // Misiones de la peque (4 años): contar, colores, formas, arrastrar, unir, memoria
+  function buildLittle(pid) {
+    const w = PROFILES[pid].w;
+    const list = [];
+    for (let z = 0; z < 10; z++) {
+      const T = w * 10 + z;
+      const cMax = at(T20([3, 3, 5, 5, 5, 8, 8, 10, 10, 10], 20), T);
+      const gMax = at(T20([3, 3, 5, 5, 5, 6, 8, 10, 10, 10], 12), T);
+      const dMax = at(T20([3, 4, 5, 6, 6, 8, 8, 10, 10, 10], 12), T);
+      const sMax = at(T20([4, 4, 5, 6, 6, 8, 8, 10, 10, 10], 12), T);
+      const pairs = at(T20([3, 3, 4, 4, 4, 5, 5, 6, 6, 6], 6), T);
+      const cp = at([3, 3, 4, 4, 5], T);
+      const colors = at(T20([4, 4, 5, 6, 6, 7, 8], 8), T);
+      const varieties = [
+        { t: 'Los colores', i: '🌈', g: () => colorQ(colors) },
+        { t: 'Las formas', i: '🔺', g: () => shapeQ() },
+        { t: 'Cada cosa en su sitio', i: '📦', g: () => dragSortQ(), r: 3 },
+        { t: 'Encaja las formas', i: '🧩', g: () => dragShapeQ(), r: 3 },
+        { t: 'Une las sombras', i: '🌑', g: () => connectShadowQ(Math.min(3 + (T > 4 ? 1 : 0) + (T > 11 ? 1 : 0), 5)), r: 3 },
+        { t: '¿Dónde hay más o menos?', i: '👀', g: () => moreQ(Math.min(cMax, 8)) },
+        { t: 'Sigue el patrón', i: '🧶', g: () => patternQ(T >= 6) },
+        { t: '¿Qué número es?', i: '🔢', g: () => bigNumQ(Math.min(cMax, 12)) },
+      ];
+      const vA = varieties[(z + w * 3) % 8];
+      const vB = varieties[(z + w * 3 + 4) % 8];
+      const slots = [
+        { t: `Cuenta hasta ${cMax}`, i: '🐮', g: () => countQ(cMax) },
+        { t: `Busca el grupo`, i: '🐷', g: () => groupQ(gMax) },
+        { t: 'Mete en el cesto', i: '🧺', g: () => dragCountQ(dMax), r: 4 },
+        { t: vA.t, i: vA.i, g: vA.g, r: vA.r },
+        { t: 'Junta las frutas', i: '🍎', g: () => sumVisualQ(sMax) },
+        { t: 'Une números y animales', i: '🔗', g: () => connectNumGroupQ(Math.min(cMax, 10), cp), r: 3 },
+        { t: 'Parejas de animales', i: '🧠', pairs },
+        { t: vB.t, i: vB.i, g: vB.g, r: vB.r },
+      ];
+      const gens = slots.filter((x) => x.g).map((x) => x.g);
+      slots.forEach((x) => list.push(x.pairs ? { title: x.t, icon: x.i, kind: 'memory', pairs: x.pairs, zone: z } : { title: x.t, icon: x.i, rounds: x.r || 5, gen: x.g, zone: z }));
+      list.push({ title: `Mezcla de ${ZONES[pid][z]}`, icon: '🎲', rounds: 6, gen: () => pick(gens)(), zone: z });
+      list.push({ title: `${BOSS[pid]} ${ZONES[pid][z]}`, icon: '🎁', rounds: 6, gen: () => pick(gens)(), zone: z, boss: true });
+    }
+    return list;
+  }
+
+  const MISSIONS = {};
+  const PREFIX = { peque: 'q', gatito: 'g', explorador: 'e', dragon: 'd' };
+  Object.keys(PROFILES).forEach((pid) => {
+    const pr = PROFILES[pid];
+    const base = pr.family === 'peque' ? buildLittle(pid) : buildBoy(pid);
+    MISSIONS[pid] = base.map((m, i) => Object.assign(m, { id: PREFIX[pid] + (i + 1), sticker: stickerFor(pr.w, i) }));
+  });
+
+  // Rangos por estrellas totales (hay 3 por misión: unas 300 por mundo)
   const RANKS = {
-    peque: [
-      { min: 0, icon: '✨', title: 'Brillito' },
-      { min: 6, icon: '🌈', title: 'Arcoíris' },
-      { min: 14, icon: '🌸', title: 'Flor mágica' },
-      { min: 26, icon: '🦄', title: 'Unicornio' },
-    ],
-    explorador: [
-      { min: 0, icon: '🥚', title: 'Huevito' },
-      { min: 6, icon: '🦎', title: 'Dinito' },
-      { min: 14, icon: '🦕', title: 'Dino joven' },
-      { min: 24, icon: '🦖', title: 'Dino fuerte' },
-      { min: 34, icon: '👑', title: 'Rey de los dinos' },
-    ],
+    peque: [[0, '✨', 'Brillito'], [12, '🌈', 'Arcoíris'], [36, '🌸', 'Flor mágica'], [80, '⭐', 'Estrella'], [140, '🦄', 'Unicornio'], [220, '👑', 'Reina del reino']],
+    gatito: [[0, '🧶', 'Ovillito'], [12, '🐾', 'Patitas'], [36, '🐱', 'Gatita'], [80, '🌙', 'Gata de luna'], [140, '✨', 'Gata mágica'], [220, '👑', 'Reina de los gatitos']],
+    explorador: [[0, '🥚', 'Huevito'], [12, '🦎', 'Dinito'], [36, '🦕', 'Dino joven'], [80, '🦖', 'Dino fuerte'], [140, '🌋', 'Dino del volcán'], [220, '👑', 'Rey de los dinos']],
+    dragon: [[0, '🥚', 'Huevo de dragón'], [12, '🐲', 'Dragoncito'], [36, '🔥', 'Dragón de fuego'], [80, '⚡', 'Dragón de tormenta'], [140, '🏰', 'Guardián del castillo'], [220, '👑', 'Rey de los dragones']],
   };
+  Object.keys(RANKS).forEach((k) => { RANKS[k] = RANKS[k].map(([min, icon, title]) => ({ min, icon, title })); });
 
   const SKILL_NAMES = {
     contar: 'Contar objetos',
@@ -674,9 +937,17 @@ const Games = (function () {
     'prob-masomenos': 'Problemas: saber si habrá más o menos',
     'prob-operacion': 'Problemas: elegir suma o resta',
     'prob-resultado': 'Problemas: calcular el resultado',
+    comparar: 'Mayor y menor',
+    dobles: 'Dobles y mitades',
+    decenas: 'Decenas y unidades',
+    vecinos: 'Antes y después',
+    dinero: 'Dinero',
+    numeros: 'Reconocer números',
+    'comparar-visual': 'Más y menos (dibujos)',
+    patrones: 'Patrones',
   };
 
-  return { PROFILES, MISSIONS, RANKS, SKILL_NAMES, ANIMALS, rnd, pick, shuffle, sample };
+  return { PROFILES, KIDS, ZONES, MISSIONS, RANKS, SKILL_NAMES, ANIMALS, rnd, pick, shuffle, sample };
 })();
 
 if (typeof module !== 'undefined') module.exports = Games;
