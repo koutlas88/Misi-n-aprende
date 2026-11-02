@@ -18,17 +18,23 @@
   /* ---------- Datos guardados ---------- */
   const defaultProfile = (id) => ({
     name: Games.PROFILES[id].defaultName,
-    limit: 3,
+    limit: 10,
     unlockAll: false,
     extra: { date: '', n: 0 },
     missions: {},
     stickers: [],
     history: [],
     skills: {},
+    gems: 0,
+    pending: 0,
+    mg: 0,
+    accs: [],
+    worn: [],
+    best: {},
   });
   function normalize(s) {
     s = s && typeof s === 'object' ? s : {};
-    s.settings = Object.assign({ sound: true, voice: '', rate: 0.92 }, s.settings || {});
+    s.settings = Object.assign({ sound: true, voice: '', rate: 0.92, rewardEvery: 5 }, s.settings || {});
     s.profiles = s.profiles || {};
     Object.keys(Games.PROFILES).forEach((id) => {
       s.profiles[id] = Object.assign(defaultProfile(id), s.profiles[id] || {});
@@ -220,7 +226,46 @@
     <path class="mc" d="M84 114 q16 14 32 0" stroke="#2f7d3a" stroke-width="4" fill="none" stroke-linecap="round"/>
     <path class="mo" d="M82 112 q18 24 36 0Z" fill="#c2455f"/><polygon class="mo" points="88,113 93,113 90.5,119" fill="#fff"/><polygon class="mo" points="107,113 112,113 109.5,119" fill="#fff"/>
   </svg>`;
-  const mascotHTML = (pid, cls, id) => `<div class="mascot ${cls || 'idle'}"${id ? ` id="${id}"` : ''}>${pid === 'peque' ? UNICORN : DINO}</div>`;
+  /* Accesorios que se ganan con los regalos */
+  const ACCS = [
+    { id: 'gafas', name: 'Gafas de sol', icon: '🕶️' },
+    { id: 'corona', name: 'Corona', icon: '👑' },
+    { id: 'capa', name: 'Capa de superhéroe', icon: '🦸' },
+    { id: 'gorro', name: 'Gorro de fiesta', icon: '🎉' },
+    { id: 'pajarita', name: 'Pajarita', icon: '🎀' },
+    { id: 'bufanda', name: 'Bufanda', icon: '🧣' },
+  ];
+  const ACC_BACK = {
+    capa: '<path d="M64 138 L136 138 L168 200 Q100 214 32 200Z" fill="#e5484d" stroke="#a3262b" stroke-width="3" stroke-linejoin="round"/>',
+  };
+  const ACC_FRONT = {
+    gafas: (pid) => (pid === 'peque'
+      ? '<g><rect x="63" y="88" width="32" height="26" rx="10" fill="#26324f"/><rect x="105" y="88" width="32" height="26" rx="10" fill="#26324f"/><path d="M95 99 L105 99" stroke="#26324f" stroke-width="4"/><path d="M69 94 l8 -2 M111 94 l8 -2" stroke="#fff" stroke-width="3" opacity=".6" stroke-linecap="round"/></g>'
+      : '<g><circle cx="78" cy="84" r="17" fill="#26324f"/><circle cx="122" cy="84" r="17" fill="#26324f"/><path d="M95 84 L105 84" stroke="#26324f" stroke-width="4"/><path d="M68 78 l8 -3 M112 78 l8 -3" stroke="#fff" stroke-width="3" opacity=".6" stroke-linecap="round"/></g>'),
+    corona: (pid) => `<g transform="translate(0 ${pid === 'peque' ? 0 : -2})"><path d="M72 64 L72 44 L86 54 L100 38 L114 54 L128 44 L128 64Z" fill="#ffd23f" stroke="#e0a800" stroke-width="3" stroke-linejoin="round"/><circle cx="100" cy="48" r="3.5" fill="#e5484d"/></g>`,
+    gorro: () => '<g><polygon points="116,58 148,50 140,14" fill="#ff6fa5" stroke="#c2417c" stroke-width="3" stroke-linejoin="round"/><circle cx="140" cy="12" r="6" fill="#ffd23f"/><path d="M122 52 l16 -4 M128 40 l10 -3" stroke="#fff" stroke-width="3" opacity=".7"/></g>',
+    pajarita: () => '<g><path d="M100 150 L78 138 L78 162Z" fill="#e5484d" stroke="#a3262b" stroke-width="3" stroke-linejoin="round"/><path d="M100 150 L122 138 L122 162Z" fill="#e5484d" stroke="#a3262b" stroke-width="3" stroke-linejoin="round"/><circle cx="100" cy="150" r="7" fill="#ff8a8a" stroke="#a3262b" stroke-width="3"/></g>',
+    bufanda: () => '<g><rect x="64" y="136" width="72" height="16" rx="8" fill="#2b8cff" stroke="#1456a8" stroke-width="3"/><rect x="118" y="146" width="18" height="34" rx="6" fill="#2b8cff" stroke="#1456a8" stroke-width="3"/><path d="M76 138 v12 M92 138 v12 M108 138 v12 M124 148 v28" stroke="#fff" stroke-width="3" opacity=".7"/></g>',
+  };
+  function mascotSVG(pid, worn) {
+    worn = worn || [];
+    const base = pid === 'peque' ? UNICORN : DINO;
+    const back = worn.map((id) => ACC_BACK[id] || '').join('');
+    const front = worn.map((id) => (ACC_FRONT[id] ? ACC_FRONT[id](pid) : '')).join('');
+    return base.replace('aria-hidden="true">', 'aria-hidden="true">' + back).replace(/<\/svg>\s*$/, front + '</svg>');
+  }
+  const mascotHTML = (pid, cls, id, worn) => `<div class="mascot ${cls || 'idle'}"${id ? ` id="${id}"` : ''}>${mascotSVG(pid, worn !== undefined ? worn : P(pid).worn)}</div>`;
+  /* Imagen de la mascota para dibujarla en los minijuegos */
+  function mascotImage(pid) {
+    const svg = mascotSVG(pid, P(pid).worn)
+      .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="210" ')
+      .replace(/<g class="eh">[\s\S]*?<\/g>/, '')
+      .replace(/<path class="mo"[^>]*\/>/g, '')
+      .replace(/<polygon class="mo"[^>]*\/>/g, '');
+    const img = new Image();
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    return img;
+  }
   const mascotMini = (pid) => `<div class="mascot-mini">${mascotHTML(pid, 'idle', 'mm')}</div>`;
   function react(mood) {
     const el = document.getElementById('mm');
@@ -263,6 +308,20 @@
   };
   const DECO_POS = [[3, 2], [86, 3], [2, 38], [88, 46], [3, 76], [86, 88]];
 
+  function gemsHTML(pid) {
+    const every = S.settings.rewardEvery;
+    if (!every) return '';
+    const g = P(pid).gems || 0;
+    return `<div class="gems"><span>🎁</span>${Array.from({ length: every }, (_, k) => `<i class="${k < g ? 'on' : ''}"></i>`).join('')}<small>${every - g} para el regalo</small></div>`;
+  }
+  function giftButtons(pid) {
+    const p = P(pid);
+    let h = '';
+    if (p.pending > 0) h += `<button class="btn giftbtn" data-act="gift">🎁 ¡Tienes ${p.pending > 1 ? p.pending + ' regalos' : 'un regalo'} para abrir!</button>`;
+    if (p.mg > 0) h += '<button class="btn giftbtn mgbtn" data-act="mg-choose">🎮 ¡Tienes un minijuego!</button>';
+    return h;
+  }
+
   function renderMap(pid) {
     stopSpeech();
     cur.pid = pid;
@@ -296,9 +355,9 @@
     const deco = DECO[pid].map((e, k) => `<span class="deco" style="left:${DECO_POS[k][0]}%;top:${DECO_POS[k][1]}%">${e}</span>`).join('');
     $app.innerHTML = `${header(esc(pr.world), 'back-home')}
       <div class="card"><div class="hero"><div class="avatar">${mascotHTML(pid, 'idle')}</div><div class="grow"><b>${esc(p.name)}</b><br>${rk.icon} ${rk.title}</div><div class="stars">⭐ ${totalStars(pid)}</div></div>
-      <div class="today">Hoy: ${dots || '∞'} ${allowed === Infinity ? '' : `<span>${Math.min(playedToday(pid), allowed)}/${allowed}</span>`}</div></div>
+      <div class="today">Hoy: ${dots || '∞'} ${allowed === Infinity ? '' : `<span>${Math.min(playedToday(pid), allowed)}/${allowed}</span>`}</div>${gemsHTML(pid)}</div>${giftButtons(pid)}
       <div class="islandmap" id="island"><svg class="path" id="islpath" aria-hidden="true"></svg>${deco}${rows}<div class="map-mascot" id="mapmascot">${mascotHTML(pid, 'idle')}</div></div>
-      <button class="btn album-btn" data-act="album">${pid === 'peque' ? '📒 Mis pegatinas mágicas' : '🦴 Mi colección de dinos'}</button>`;
+      <div class="row2"><button class="btn album-btn" data-act="album">${pid === 'peque' ? '📒 Pegatinas' : '🦴 Colección'}</button><button class="btn album-btn" data-act="wardrobe">👕 Mi armario</button></div>`;
     requestAnimationFrame(drawMap);
   }
 
@@ -741,6 +800,12 @@
     rec.done++;
     rec.stars = Math.max(rec.stars, stars);
     p.missions[m.id] = rec;
+    const every = S.settings.rewardEvery;
+    let gotGift = false;
+    if (every) {
+      p.gems = (p.gems || 0) + 1;
+      if (p.gems >= every) { p.gems = 0; p.pending = (p.pending || 0) + 1; gotGift = true; }
+    }
     let newSticker = null;
     if (m.sticker && !p.stickers.includes(m.sticker)) { p.stickers.push(m.sticker); newSticker = m.sticker; }
     p.history.push({ d: todayKey(), m: m.id, s: stars, e: run.errs, t: Date.now() });
@@ -750,7 +815,7 @@
     const levelUp = rankNow.title !== run.rankBefore;
     const hasNext = i + 1 < missionsOf(pid).length && isUnlocked(pid, i + 1);
     const left = remaining(pid);
-    let btns = '';
+    let btns = p.pending > 0 ? '<button class="btn giftbtn" data-act="gift">🎁 ¡Abrir el regalo!</button>' : '';
     if (left > 0) {
       if (hasNext) btns += '<button class="btn" data-act="next">Siguiente misión ▶</button>';
       btns += '<button class="btn alt" data-act="again">🔁 Repetir esta misión</button>';
@@ -759,13 +824,187 @@
       btns += '<button class="btn" data-act="back-map">🌙 ¡Hasta mañana!</button>';
     }
     const msg = left > 0 ? '¡Buen trabajo! ¿Seguimos?' : '¡Misión cumplida por hoy! Mañana te esperan más aventuras.';
+    const giftLine = every ? (gotGift ? '<p class="msg">🎁 ¡Has ganado un regalo!</p>' : `<p class="tiny">🎁 Te faltan ${every - p.gems} misiones para el regalo</p>`) : '';
     const what = pid === 'peque' ? 'pegatina' : 'tesoro';
-    $app.innerHTML = `${header('', null)}<div class="card result">${mascotHTML(pid, 'idle happy')}<h1>¡Misión completada!</h1><div class="bigstars">${'⭐'.repeat(stars)}${'<span style="opacity:.25">⭐</span>'.repeat(3 - stars)}</div>${newSticker ? `<p>Nuevo ${what}:</p><div class="sticker-new">${newSticker}</div>` : ''}${levelUp ? `<div class="level-up">${rankNow.icon} ¡Subes de nivel: ${rankNow.title}!</div>` : ''}<p class="msg">${msg}</p><div class="btns">${btns}</div></div>`;
+    $app.innerHTML = `${header('', null)}<div class="card result">${mascotHTML(pid, 'idle happy')}<h1>¡Misión completada!</h1><div class="bigstars">${'⭐'.repeat(stars)}${'<span style="opacity:.25">⭐</span>'.repeat(3 - stars)}</div>${newSticker ? `<p>Nuevo ${what}:</p><div class="sticker-new">${newSticker}</div>` : ''}${levelUp ? `<div class="level-up">${rankNow.icon} ¡Subes de nivel: ${rankNow.title}!</div>` : ''}<p class="msg">${msg}</p>${giftLine}<div class="btns">${btns}</div></div>`;
     window.scrollTo(0, 0);
     setTheme(pid);
     fx.win();
     rain(['⭐', '🎉', '✨', newSticker || '🌟']);
-    setTimeout(() => speak(msg), 500);
+    setTimeout(() => speak(gotGift ? '¡Has ganado un regalo! Ábrelo.' : msg), 500);
+  }
+
+  /* ---------- Regalos y armario ---------- */
+  let gift = null;
+  const EGG_SVG = '<svg viewBox="0 0 120 150" class="egg-svg" aria-hidden="true"><ellipse cx="60" cy="84" rx="46" ry="60" fill="#fff6d6" stroke="#e0a800" stroke-width="4"/><circle cx="40" cy="62" r="8" fill="#ff9ec2"/><circle cx="80" cy="102" r="10" fill="#8fd3ff"/><circle cx="74" cy="54" r="6" fill="#b5e48c"/><circle cx="44" cy="110" r="6" fill="#ffd23f"/><path class="crack c1" d="M26 78 L44 70 L52 86 L68 74"/><path class="crack c2" d="M92 92 L78 100 L84 116 L66 122"/><path class="crack c3" d="M52 40 L60 56 L72 44"/></svg>';
+
+  function renderGift(pid, test) {
+    const p = P(pid);
+    if (!test && !(p.pending > 0)) { renderMap(pid); return; }
+    cur.pid = pid;
+    setTheme(pid);
+    gift = { pid, test: !!test, taps: 0, opened: false };
+    $app.innerHTML = `${header('🎁 ¡Regalo!', test ? 'to-parent' : 'back-map')}<div class="card gift"><p class="msg">¡Toca el huevo para abrirlo!</p><button class="egg-btn" id="egg" data-act="egg" aria-label="Huevo sorpresa">${EGG_SVG}</button><p class="tiny">Toca 3 veces</p></div>`;
+    setTimeout(() => speak('¡Toca el huevo para abrirlo!'), 250);
+  }
+
+  function tapEgg(btn) {
+    if (!gift || gift.opened) return;
+    gift.taps++;
+    fx.tap();
+    btn.classList.remove('wob');
+    void btn.offsetWidth;
+    btn.classList.add('wob');
+    if (gift.taps === 1) btn.classList.add('t1');
+    if (gift.taps === 2) btn.classList.add('t2');
+    if (gift.taps >= 3) { gift.opened = true; setTimeout(openGift, 450); }
+  }
+
+  function openGift() {
+    const { pid, test } = gift;
+    const p = P(pid);
+    const pool = test ? ACCS : ACCS.filter((a) => !p.accs.includes(a.id));
+    const acc = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+    if (!test) {
+      p.pending = Math.max(0, (p.pending || 0) - 1);
+      p.mg = (p.mg || 0) + 1;
+      if (acc) { p.accs.push(acc.id); p.worn.push(acc.id); }
+      save();
+    }
+    const wornShow = test ? (acc ? [acc.id] : []) : p.worn;
+    const title = acc ? `¡Nuevo: ${acc.name}!` : '¡Superpremio! Ya tienes todo el armario';
+    let btns = '';
+    if (test) {
+      btns = '<button class="btn" data-act="to-parent">⬅️ Volver a la zona de padres</button>';
+    } else {
+      btns = '<button class="btn" data-act="mg-choose">🎮 Jugar un minijuego</button>'
+        + (p.pending > 0 ? '<button class="btn alt" data-act="gift">🎁 Abrir otro regalo</button>' : '')
+        + '<button class="btn alt" data-act="wardrobe">👕 Mi armario</button><button class="btn alt" data-act="back-map">🗺️ Volver al mapa</button>';
+    }
+    $app.innerHTML = `${header('🎁 ¡Regalo!', test ? 'to-parent' : 'back-map')}<div class="card gift reveal">${mascotHTML(pid, 'idle happy', null, wornShow)}${acc ? `<div class="accico">${acc.icon}</div>` : ''}<h1>${title}</h1>${test ? '<p class="tiny">Modo prueba: no se guarda</p>' : ''}<div class="btns">${btns}</div></div>`;
+    window.scrollTo(0, 0);
+    fx.win();
+    rain(['⭐', '🎉', '✨', acc ? acc.icon : '🌟']);
+    setTimeout(() => speak(acc ? '¡Mira! ¡Has ganado ' + acc.name + '!' : '¡Superpremio!'), 400);
+  }
+
+  function renderWardrobe(pid) {
+    const p = P(pid);
+    const items = ACCS.map((a) => {
+      if (!p.accs.includes(a.id)) return '<div class="acc locked"><span>🔒</span><b>???</b><small>Se gana con regalos</small></div>';
+      const on = p.worn.includes(a.id);
+      return `<button class="acc ${on ? 'on' : ''}" data-act="wear" data-a="${a.id}"><span>${a.icon}</span><b>${a.name}</b><small>${on ? '✅ Puesto' : 'Ponérmelo'}</small></button>`;
+    }).join('');
+    $app.innerHTML = `${header('Mi armario', 'back-map')}<div class="card wardrobe">${mascotHTML(pid, 'idle')}<p class="tiny">Has conseguido ${p.accs.length} de ${ACCS.length}. ¡Ábrelos con los regalos!</p><div class="accs">${items}</div></div>`;
+  }
+
+  /* ---------- Minijuegos ---------- */
+  let mg = null;
+  const MG_OVERRIDE = (function () {
+    try { const v = parseInt(new URLSearchParams(window.location.search).get('mgtime'), 10); return v > 0 ? v : 0; } catch (e) { return 0; }
+  })();
+
+  function renderMgChoose(pid) {
+    cur.pid = pid;
+    setTheme(pid);
+    const defs = MiniGames.DEFS[pid];
+    $app.innerHTML = `${header('🎮 Elige un minijuego', 'back-map')}<div class="mgchoose">${defs.map((d) => `<button class="mgcard" data-act="mg-pick" data-id="${d.id}"><span class="ico">${d.icon}</span><b>${esc(d.title)}</b><small>${esc(d.how)}</small></button>`).join('')}</div><p class="tiny">Dura 1 minuto</p>`;
+    setTimeout(() => speak('Elige un minijuego'), 250);
+  }
+
+  function startMinigame(pid, id, opts) {
+    const def = MiniGames.DEFS[pid].find((d) => d.id === id);
+    if (!def) return;
+    cur.pid = pid;
+    setTheme(pid);
+    const total = MG_OVERRIDE || def.seconds || 60;
+    mg = { pid, def, test: !!opts.test, reward: !!opts.reward, score: 0, total, left: total, running: false, game: null };
+    $app.innerHTML = `${header(`${def.icon} ${esc(def.title)}${mg.test ? ' 🧪' : ''}`, 'mg-exit')}<div class="mgbar"><span id="mgtime">⏱ ${total}</span><span id="mgscore">${def.noScore ? '🎨' : '⭐ 0'}</span></div><div class="mgwrap"><canvas id="mgc" width="${MiniGames.W}" height="${MiniGames.H}"></canvas><div class="mgover" id="mgover"><div class="card"><h2>${def.icon} ${esc(def.title)}</h2><p>${esc(def.how)}</p><div class="btns"><button class="btn" data-act="mg-go">▶ ¡Jugar!</button></div></div></div></div><div id="mgtools"></div>`;
+    window.scrollTo(0, 0);
+    setTimeout(() => speak(def.how), 250);
+  }
+
+  function beginMinigame() {
+    const me = mg;
+    const canvas = document.getElementById('mgc');
+    if (!me || !canvas || me.running) return;
+    const ctx = canvas.getContext('2d');
+    const env = {
+      ctx,
+      pid: me.pid,
+      addScore(n) {
+        me.score += n;
+        const el = document.getElementById('mgscore');
+        if (el && !me.def.noScore) el.textContent = '⭐ ' + me.score;
+      },
+      sfx(n) { (fx[n] || fx.tap)(); },
+      img: me.def.needsImg ? mascotImage(me.pid) : null,
+    };
+    me.game = me.def.make(env);
+    document.getElementById('mgover').style.display = 'none';
+    if (me.game.toolsHTML) document.getElementById('mgtools').innerHTML = me.game.toolsHTML;
+    const pt = (e) => {
+      const r = canvas.getBoundingClientRect();
+      const sx = r.width ? MiniGames.W / r.width : 1;
+      const sy = r.height ? MiniGames.H / r.height : 1;
+      return [(e.clientX - r.left) * sx, (e.clientY - r.top) * sy];
+    };
+    canvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* nada */ }
+      const [x, y] = pt(e);
+      if (me.running) me.game.pointer('down', x, y);
+    });
+    canvas.addEventListener('pointermove', (e) => { const [x, y] = pt(e); if (me.running) me.game.pointer('move', x, y); });
+    const up = (e) => { const [x, y] = pt(e); if (me.running) me.game.pointer('up', x, y); };
+    canvas.addEventListener('pointerup', up);
+    canvas.addEventListener('pointercancel', up);
+    me.running = true;
+    let last = 0;
+    const loop = (ts) => {
+      if (mg !== me || !me.running || !document.body.contains(canvas)) return;
+      const dt = last ? Math.min(0.05, (ts - last) / 1000) : 0;
+      last = ts;
+      me.left -= dt;
+      me.game.update(dt);
+      me.game.draw();
+      const tm = document.getElementById('mgtime');
+      if (tm) tm.textContent = '⏱ ' + Math.max(0, Math.ceil(me.left));
+      if (me.left <= 0) { endMinigame(); return; }
+      window.requestAnimationFrame(loop);
+    };
+    window.requestAnimationFrame(loop);
+  }
+
+  function endMinigame() {
+    const me = mg;
+    if (!me || !me.running) return;
+    me.running = false;
+    const p = P(me.pid);
+    let record = false;
+    if (!me.test) {
+      p.best = p.best || {};
+      if (!me.def.noScore && me.score > (p.best[me.def.id] || 0)) { p.best[me.def.id] = me.score; record = true; }
+      if (me.reward && p.mg > 0) p.mg--;
+      save();
+    }
+    const over = document.getElementById('mgover');
+    if (!over) return;
+    const msg = me.def.noScore ? '¡Qué dibujo tan bonito!' : `Has conseguido <b>${me.score}</b> ⭐`;
+    let btns;
+    if (me.test) btns = '<button class="btn" data-act="mg-again">🔁 Jugar otra vez</button><button class="btn alt" data-act="mg-exit">⬅️ Volver a la zona de padres</button>';
+    else btns = (p.mg > 0 ? '<button class="btn" data-act="mg-choose">🎮 Otro minijuego</button>' : '') + '<button class="btn alt" data-act="mg-exit">🗺️ Volver al mapa</button>';
+    over.style.display = 'flex';
+    over.innerHTML = `<div class="card"><h2>⏰ ¡Tiempo!</h2><p class="msg">${msg}${record ? '<br>🏆 ¡Nuevo récord!' : ''}</p><div class="btns">${btns}</div></div>`;
+    fx.win();
+    rain(['⭐', '✨', '🎉']);
+    setTimeout(() => speak(me.def.noScore ? '¡Qué dibujo tan bonito!' : `¡Tiempo! Has conseguido ${me.score}`), 300);
+  }
+
+  function exitMinigame() {
+    if (mg) mg.running = false;
+    stopSpeech();
+    if (mg && mg.test) renderParent(); else renderMap(cur.pid);
   }
 
   /* ---------- Zona de padres ---------- */
@@ -827,8 +1066,11 @@
         <label>🧪 Probar cualquier misión (no se guarda nada)</label>
         <select id="test-${id}">${missionsOf(id).map((m, k) => `<option value="${k}">${k + 1}. ${esc(m.title)}</option>`).join('')}</select>
         <div class="row"><button class="btn small" data-act="p-test" data-id="${id}">▶ Probar esta misión</button></div>
+        <label>🎮 Probar un minijuego o un regalo</label>
+        <select id="testmg-${id}">${MiniGames.DEFS[id].map((d) => `<option value="${d.id}">${d.icon} ${esc(d.title)}</option>`).join('')}</select>
+        <div class="row"><button class="btn small" data-act="p-minigame" data-id="${id}">▶ Jugar minijuego</button><button class="btn small alt" data-act="p-gift-test" data-id="${id}">🎁 Probar un regalo</button></div>
         <label>Misiones por día</label>
-        <select data-act="p-limit" data-id="${id}">${[[2, '2'], [3, '3'], [5, '5'], [8, '8'], [0, 'Sin límite']].map(([v, l]) => `<option value="${v}" ${lim === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        <select data-act="p-limit" data-id="${id}">${[[3, '3'], [5, '5'], [8, '8'], [10, '10'], [15, '15'], [20, '20'], [0, 'Sin límite']].map(([v, l]) => `<option value="${v}" ${lim === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
         <div class="row"><button class="btn small alt" data-act="p-extra" data-id="${id}">➕ Una misión más hoy</button>
         <button class="btn small alt" data-act="p-unlock" data-id="${id}">${p.unlockAll ? '🔒 Volver al orden normal' : '🔓 Desbloquear todas'}</button>
         <button class="btn small danger" data-act="p-reset" data-id="${id}">🗑️ Borrar progreso</button></div></div>`;
@@ -843,6 +1085,7 @@
         <label>Restaurar desde un código</label><textarea id="bk-in" placeholder="Pega aquí el código"></textarea>
         <div class="row"><button class="btn small alt" data-act="p-restore">♻️ Restaurar</button></div></div>
       <div class="card"><h2>⚙️ Otros ajustes</h2>
+        <label>🎁 Regalo cada cuántas misiones</label><select data-act="p-reward">${[[3, '3'], [5, '5'], [8, '8'], [0, 'Sin regalos']].map(([v, l]) => `<option value="${v}" ${S.settings.rewardEvery === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
         <label>Voz</label><select data-act="p-voice"><option value="">Automática (la más natural)</option>${vs.map((v) => `<option value="${esc(v.name)}" ${S.settings.voice === v.name ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>
         <label>Velocidad de la voz</label><select data-act="p-rate">${[[0.8, 'Lenta'], [0.92, 'Normal'], [1.05, 'Rápida']].map(([v, l]) => `<option value="${v}" ${Math.abs((S.settings.rate || 0.92) - v) < 0.01 ? 'selected' : ''}>${l}</option>`).join('')}</select>
         <div class="row"><button class="btn small" data-act="p-voice-test">▶ Probar voz</button></div>
@@ -941,6 +1184,34 @@
         } catch (err) { alert('El código no es válido. Cópialo entero e inténtalo de nuevo.'); }
         break;
       }
+      case 'gift': renderGift(cur.pid, false); break;
+      case 'egg': tapEgg(t); break;
+      case 'wardrobe': renderWardrobe(cur.pid); break;
+      case 'wear': {
+        const pp = P(cur.pid);
+        const a = t.dataset.a;
+        pp.worn = pp.worn.includes(a) ? pp.worn.filter((x) => x !== a) : pp.worn.concat(a);
+        save(); renderWardrobe(cur.pid); break;
+      }
+      case 'mg-choose': if (P(cur.pid).mg > 0) renderMgChoose(cur.pid); else renderMap(cur.pid); break;
+      case 'mg-pick': startMinigame(cur.pid, t.dataset.id, { reward: true }); break;
+      case 'mg-go': beginMinigame(); break;
+      case 'mg-exit': exitMinigame(); break;
+      case 'mg-again': startMinigame(mg.pid, mg.def.id, { test: true }); break;
+      case 'mg-tool': {
+        if (mg && mg.game && mg.game.tool) {
+          const keep = mg.game.tool(t.dataset.v);
+          if (keep) { document.querySelectorAll('.ptool').forEach((b) => b.classList.remove('on')); t.classList.add('on'); }
+        }
+        break;
+      }
+      case 'p-minigame': {
+        const sel = document.getElementById('testmg-' + id);
+        cur.pid = id;
+        startMinigame(id, sel.value, { test: true });
+        break;
+      }
+      case 'p-gift-test': cur.pid = id; renderGift(id, true); break;
       default: break;
     }
   });
@@ -948,6 +1219,7 @@
   $app.addEventListener('change', (e) => {
     const t = e.target;
     if (t.dataset.act === 'p-limit') { P(t.dataset.id).limit = parseInt(t.value, 10); save(); renderParent(); }
+    if (t.dataset.act === 'p-reward') { S.settings.rewardEvery = parseInt(t.value, 10); save(); renderParent(); }
     if (t.dataset.act === 'p-voice') {
       S.settings.voice = t.value;
       save();
