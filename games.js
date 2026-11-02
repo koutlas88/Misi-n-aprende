@@ -489,26 +489,26 @@ const Games = (function () {
     { e: '🌿', add: (a, b) => `Tric el dinosaurio come ${a} hojas por la mañana y ${b} por la tarde. ¿Cuántas hojas come en total?`, sub: (a, b) => `Tric el dinosaurio tenía ${a} hojas y se come ${b}. ¿Cuántas hojas le quedan?` },
     { e: '⭐', add: (a, b) => `Luna tiene ${a} estrellas de premio y gana ${b} más. ¿Cuántas estrellas tiene ahora?`, sub: (a, b) => `Luna tenía ${a} estrellas de premio y regala ${b} a su hermano. ¿Cuántas estrellas le quedan?` },
   ];
+  // "Dar a otro": se resta, sin el concepto de "cuántos más"
   const CMP = [
-    { e: '🐦', f: (a, b) => `En el árbol hay ${a} pájaros y en el suelo hay ${b}. ¿Cuántos pájaros más hay en el árbol que en el suelo?` },
-    { e: '🌟', f: (a, b) => `Luna tiene ${a} pegatinas y Leo tiene ${b}. ¿Cuántas pegatinas más tiene Luna que Leo?` },
-    { e: '🐮', f: (a, b) => `En la granja hay ${a} vacas y ${b} ovejas. ¿Cuántas vacas más que ovejas hay?` },
-    { e: '🦴', f: (a, b) => `Rexi encontró ${a} huesos de dinosaurio y Tric encontró ${b}. ¿Cuántos huesos más encontró Rexi?` },
+    { e: '🌟', f: (a, b) => `Luna tiene ${a} pegatinas y le da ${b} a su amigo Leo. ¿Cuántas pegatinas le quedan a Luna?` },
+    { e: '🦴', f: (a, b) => `Rexi tiene ${a} huesos y le da ${b} a su amiga Tric. ¿Cuántos huesos le quedan a Rexi?` },
+    { e: '🍪', f: (a, b) => `Leo tiene ${a} galletas y le da ${b} a su hermana. ¿Cuántas galletas le quedan a Leo?` },
+    { e: '🐮', f: (a, b) => `El granjero tiene ${a} vacas y vende ${b} a otro granjero. ¿Cuántas vacas le quedan?` },
   ];
+  // "Entre los dos / en total": se suma
   const TOT = [
+    { e: '🌟', f: (a, b) => `Luna tiene ${a} pegatinas y Leo tiene ${b}. ¿Cuántas pegatinas tienen entre los dos?` },
+    { e: '🦴', f: (a, b) => `Rexi encontró ${a} huesos y Tric encontró ${b}. ¿Cuántos huesos tienen entre los dos?` },
     { e: '🦁', f: (a, b) => `En el zoo hay ${a} leones y ${b} tigres. ¿Cuántos felinos hay en total?` },
     { e: '✏️', f: (a, b) => `En la caja hay ${a} lápices rojos y ${b} lápices azules. ¿Cuántos lápices hay en total?` },
-    { e: '🦆', f: (a, b) => `En un lado del estanque hay ${a} patos y en el otro lado hay ${b}. ¿Cuántos patos hay en total?` },
-  ];
-  const MUL = [
-    { e: '🍎', f: (a, b) => `Hay ${a} cajas y en cada caja hay ${b} manzanas. ¿Cuántas manzanas hay en total?` },
-    { e: '🥚', f: (a, b) => `Rexi tiene ${a} nidos con ${b} huevos en cada uno. ¿Cuántos huevos tiene en total?` },
+    { e: '🍎', f: (a, b) => `Luna tiene ${a} manzanas y Leo le regala ${b}. ¿Cuántas manzanas tiene Luna en total?` },
   ];
   const OPHINT = {
     add: 'Juntar o añadir cosas = SUMAR ➕',
     sub: 'Quitar o perder cosas = RESTAR ➖',
-    cmp: 'Cuando preguntan "cuántos más", se RESTA ➖',
-    tot: '"En total" = juntar todo = SUMAR ➕',
+    cmp: 'Dar o regalar a otro = perder = RESTAR ➖',
+    tot: '"En total" o "entre los dos" = juntar todo = SUMAR ➕',
     mul: 'Grupos iguales = MULTIPLICAR ✖️',
   };
   const SYM = { add: '+', sub: '−', cmp: '−', tot: '+', mul: '×' };
