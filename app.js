@@ -71,7 +71,7 @@
     return r;
   }
   function noteSkill(pid, tag, ok) {
-    if (!tag) return;
+    if (!tag || (run && run.test)) return;
     const sk = P(pid).skills;
     sk[tag] = sk[tag] || { ok: 0, err: 0 };
     if (ok) sk[tag].ok++; else sk[tag].err++;
@@ -348,13 +348,17 @@
   }
 
   /* ---------- Jugar ---------- */
-  function startMission(pid, i) {
+  function playHeader() {
+    return header(`${run.m.icon} ${esc(run.m.title)}${run.test ? ' 🧪' : ''}`, run.test ? 'to-parent' : 'back-map');
+  }
+
+  function startMission(pid, i, test) {
     const ms = missionsOf(pid);
-    if (i >= ms.length) { renderMap(pid); return; }
-    if (remaining(pid) <= 0) { renderDoneToday(pid); return; }
+    if (i >= ms.length) { if (test) renderParent(); else renderMap(pid); return; }
+    if (!test && remaining(pid) <= 0) { renderDoneToday(pid); return; }
     const m = ms[i];
     fx.tap();
-    run = { pid, i, m, q: 0, errs: 0, units: 0, step: 0, question: null, stepWrong: false, qErr: 0, locked: false, counted: 0, mem: null, rankBefore: rank(pid).title };
+    run = { pid, i, m, test: !!test, q: 0, errs: 0, units: 0, step: 0, question: null, stepWrong: false, qErr: 0, locked: false, counted: 0, mem: null, rankBefore: rank(pid).title };
     setTheme(pid);
     if (m.kind === 'memory') startMemory(); else nextQuestion();
   }
@@ -375,7 +379,7 @@
     run.qErr = 0;
     run.locked = false;
     run.counted = 0;
-    let html = header(`${m.icon} ${esc(m.title)}`, 'back-map') + `<div class="progress">${progressDots()}</div>`;
+    let html = playHeader() + `<div class="progress">${progressDots()}</div>`;
     if (qu.story) {
       html += `<div class="card story"><div class="storyvis">${qu.story.visual || ''}</div><p>${fmtNums(qu.story.text)}</p><button class="speakbtn" data-act="speak" data-t="story" aria-label="Escuchar">🔊</button></div>`;
     }
@@ -517,7 +521,7 @@
         <div class="col">${q.right.map((r) => `<div class="cnode right" data-id="${r.id}">${r.html}</div>`).join('')}</div></div>
         <p class="tiny">Arrastra el dedo desde un punto hasta su pareja</p>`;
     }
-    $app.innerHTML = header(`${m.icon} ${esc(m.title)}`, 'back-map') + `<div class="progress">${progressDots()}</div>
+    $app.innerHTML = playHeader() + `<div class="progress">${progressDots()}</div>
       <div class="promptrow"><h2 class="prompt">${q.prompt}</h2><button class="speakbtn" data-act="speak" data-t="step" aria-label="Escuchar">🔊</button></div>
       <div class="play-area">${area}</div>${mascotMini(run.pid)}`;
     window.scrollTo(0, 0);
@@ -669,7 +673,7 @@
     run.mem = { cards, open: [], matched: 0, lock: false, pairs };
     run.units = pairs;
     const grid = cards.map((c, i) => `<button class="mcard" data-act="card" data-i="${i}" aria-label="Carta"><span class="inner"><span class="face front">❓</span><span class="face back">${c.e}</span></span></button>`).join('');
-    $app.innerHTML = `${header(`${run.m.icon} ${esc(run.m.title)}`, 'back-map')}<div class="promptrow"><h2 class="prompt">Encuentra las parejas</h2><button class="speakbtn" data-act="speak" data-t="mem">🔊</button></div><div class="mgrid ${cards.length > 6 ? 'c4' : ''}">${grid}</div>${mascotMini(run.pid)}`;
+    $app.innerHTML = `${playHeader()}<div class="promptrow"><h2 class="prompt">Encuentra las parejas</h2><button class="speakbtn" data-act="speak" data-t="mem">🔊</button></div><div class="mgrid ${cards.length > 6 ? 'c4' : ''}">${grid}</div>${mascotMini(run.pid)}`;
     setTimeout(() => speak('Encuentra las parejas de animales'), 250);
   }
 
@@ -715,7 +719,18 @@
   }
 
   /* ---------- Final de misión ---------- */
+  function finishTest() {
+    const { pid, i } = run;
+    const hasNext = i + 1 < missionsOf(pid).length;
+    $app.innerHTML = `${header('', null)}<div class="card result">${mascotHTML(pid, 'idle happy')}<h1>🧪 Misión probada</h1><p class="msg">Modo prueba: no se ha guardado ningún progreso, estrella ni registro.</p><div class="btns">${hasNext ? '<button class="btn" data-act="next">Probar la siguiente ▶</button>' : ''}<button class="btn alt" data-act="again">🔁 Repetir esta misión</button><button class="btn alt" data-act="to-parent">⬅️ Volver a la zona de padres</button></div></div>`;
+    window.scrollTo(0, 0);
+    setTheme(pid);
+    fx.win();
+    rain(['⭐', '✨']);
+  }
+
   function finish() {
+    if (run.test) { finishTest(); return; }
     const { pid, m, i } = run;
     const p = P(pid);
     const ratio = run.errs / Math.max(1, run.units);
@@ -809,6 +824,9 @@
         <p class="stat">📅 Hoy: <b>${playedToday(id)}</b> ${lim ? `de ${allowedToday(id)}` : '(sin límite)'}</p>
         <p class="stat">Últimos 7 días (misiones por día):</p>${weekRow(id)}
         <h3 style="margin-top:14px">Cómo van las habilidades</h3>${skillsBlock(id)}
+        <label>🧪 Probar cualquier misión (no se guarda nada)</label>
+        <select id="test-${id}">${missionsOf(id).map((m, k) => `<option value="${k}">${k + 1}. ${esc(m.title)}</option>`).join('')}</select>
+        <div class="row"><button class="btn small" data-act="p-test" data-id="${id}">▶ Probar esta misión</button></div>
         <label>Misiones por día</label>
         <select data-act="p-limit" data-id="${id}">${[[2, '2'], [3, '3'], [5, '5'], [8, '8'], [0, 'Sin límite']].map(([v, l]) => `<option value="${v}" ${lim === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
         <div class="row"><button class="btn small alt" data-act="p-extra" data-id="${id}">➕ Una misión más hoy</button>
@@ -872,8 +890,15 @@
         speak(String(run.counted));
         break;
       case 'card': flipCard(+t.dataset.i); break;
-      case 'next': startMission(cur.pid, run.i + 1); break;
-      case 'again': startMission(cur.pid, run.i); break;
+      case 'next': startMission(cur.pid, run.i + 1, run.test); break;
+      case 'again': startMission(cur.pid, run.i, run.test); break;
+      case 'to-parent': stopSpeech(); renderParent(); break;
+      case 'p-test': {
+        const sel = document.getElementById('test-' + id);
+        cur.pid = id;
+        startMission(id, parseInt(sel.value, 10), true);
+        break;
+      }
       case 'parent': parentOK ? renderParent() : renderGate(); break;
       case 'gate-go': {
         const v = parseInt(document.getElementById('gate-in').value, 10);
