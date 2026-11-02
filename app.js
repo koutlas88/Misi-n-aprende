@@ -1,6 +1,8 @@
 /* Misión Aprende - interfaz, progreso y panel para padres */
 (function () {
   'use strict';
+  /* Si minigames.js no se ha cargado (archivo sin subir o caché antigua), la app sigue funcionando sin minijuegos */
+  const MG = (typeof MiniGames !== 'undefined') ? MiniGames : { W: 360, H: 520, DEFS: { peque: [], explorador: [] } };
 
   const KEY = 'mision-aprende-v1';
   const $app = document.getElementById('app');
@@ -318,7 +320,7 @@
     const p = P(pid);
     let h = '';
     if (p.pending > 0) h += `<button class="btn giftbtn" data-act="gift">🎁 ¡Tienes ${p.pending > 1 ? p.pending + ' regalos' : 'un regalo'} para abrir!</button>`;
-    if (p.mg > 0) h += '<button class="btn giftbtn mgbtn" data-act="mg-choose">🎮 ¡Tienes un minijuego!</button>';
+    if (p.mg > 0 && MG.DEFS[pid].length) h += '<button class="btn giftbtn mgbtn" data-act="mg-choose">🎮 ¡Tienes un minijuego!</button>';
     return h;
   }
 
@@ -907,19 +909,19 @@
   function renderMgChoose(pid) {
     cur.pid = pid;
     setTheme(pid);
-    const defs = MiniGames.DEFS[pid];
+    const defs = MG.DEFS[pid];
     $app.innerHTML = `${header('🎮 Elige un minijuego', 'back-map')}<div class="mgchoose">${defs.map((d) => `<button class="mgcard" data-act="mg-pick" data-id="${d.id}"><span class="ico">${d.icon}</span><b>${esc(d.title)}</b><small>${esc(d.how)}</small></button>`).join('')}</div><p class="tiny">Dura 1 minuto</p>`;
     setTimeout(() => speak('Elige un minijuego'), 250);
   }
 
   function startMinigame(pid, id, opts) {
-    const def = MiniGames.DEFS[pid].find((d) => d.id === id);
+    const def = MG.DEFS[pid].find((d) => d.id === id);
     if (!def) return;
     cur.pid = pid;
     setTheme(pid);
     const total = MG_OVERRIDE || def.seconds || 60;
     mg = { pid, def, test: !!opts.test, reward: !!opts.reward, score: 0, total, left: total, running: false, game: null };
-    $app.innerHTML = `${header(`${def.icon} ${esc(def.title)}${mg.test ? ' 🧪' : ''}`, 'mg-exit')}<div class="mgbar"><span id="mgtime">⏱ ${total}</span><span id="mgscore">${def.noScore ? '🎨' : '⭐ 0'}</span></div><div class="mgwrap"><canvas id="mgc" width="${MiniGames.W}" height="${MiniGames.H}"></canvas><div class="mgover" id="mgover"><div class="card"><h2>${def.icon} ${esc(def.title)}</h2><p>${esc(def.how)}</p><div class="btns"><button class="btn" data-act="mg-go">▶ ¡Jugar!</button></div></div></div></div><div id="mgtools"></div>`;
+    $app.innerHTML = `${header(`${def.icon} ${esc(def.title)}${mg.test ? ' 🧪' : ''}`, 'mg-exit')}<div class="mgbar"><span id="mgtime">⏱ ${total}</span><span id="mgscore">${def.noScore ? '🎨' : '⭐ 0'}</span></div><div class="mgwrap"><canvas id="mgc" width="${MG.W}" height="${MG.H}"></canvas><div class="mgover" id="mgover"><div class="card"><h2>${def.icon} ${esc(def.title)}</h2><p>${esc(def.how)}</p><div class="btns"><button class="btn" data-act="mg-go">▶ ¡Jugar!</button></div></div></div></div><div id="mgtools"></div>`;
     window.scrollTo(0, 0);
     setTimeout(() => speak(def.how), 250);
   }
@@ -945,8 +947,8 @@
     if (me.game.toolsHTML) document.getElementById('mgtools').innerHTML = me.game.toolsHTML;
     const pt = (e) => {
       const r = canvas.getBoundingClientRect();
-      const sx = r.width ? MiniGames.W / r.width : 1;
-      const sy = r.height ? MiniGames.H / r.height : 1;
+      const sx = r.width ? MG.W / r.width : 1;
+      const sy = r.height ? MG.H / r.height : 1;
       return [(e.clientX - r.left) * sx, (e.clientY - r.top) * sy];
     };
     canvas.addEventListener('pointerdown', (e) => {
@@ -1067,7 +1069,7 @@
         <select id="test-${id}">${missionsOf(id).map((m, k) => `<option value="${k}">${k + 1}. ${esc(m.title)}</option>`).join('')}</select>
         <div class="row"><button class="btn small" data-act="p-test" data-id="${id}">▶ Probar esta misión</button></div>
         <label>🎮 Probar un minijuego o un regalo</label>
-        <select id="testmg-${id}">${MiniGames.DEFS[id].map((d) => `<option value="${d.id}">${d.icon} ${esc(d.title)}</option>`).join('')}</select>
+        <select id="testmg-${id}">${MG.DEFS[id].map((d) => `<option value="${d.id}">${d.icon} ${esc(d.title)}</option>`).join('')}</select>
         <div class="row"><button class="btn small" data-act="p-minigame" data-id="${id}">▶ Jugar minijuego</button><button class="btn small alt" data-act="p-gift-test" data-id="${id}">🎁 Probar un regalo</button></div>
         <label>Misiones por día</label>
         <select data-act="p-limit" data-id="${id}">${[[3, '3'], [5, '5'], [8, '8'], [10, '10'], [15, '15'], [20, '20'], [0, 'Sin límite']].map(([v, l]) => `<option value="${v}" ${lim === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
