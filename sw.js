@@ -1,5 +1,5 @@
 /* Service worker: permite usar la app sin conexión */
-const CACHE = 'mision-aprende-v3';
+const CACHE = 'mision-aprende-v4';
 const FILES = ['./', 'index.html', 'style.css', 'games.js', 'app.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {

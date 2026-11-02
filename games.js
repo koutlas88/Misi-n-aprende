@@ -66,6 +66,7 @@ const Games = (function () {
     { n: 'corazón', art: 'el', svg: (c) => `<path d="M50 88 C10 58 6 30 28 20 C40 15 50 24 50 32 C50 24 60 15 72 20 C94 30 90 58 50 88Z" fill="${c}"/>` },
     { n: 'rectángulo', art: 'el', svg: (c) => `<rect x="4" y="26" width="92" height="48" fill="${c}"/>` },
   ];
+  const SHADOW_ANIMALS = ['🐘', '🦒', '🐢', '🦆', '🐔', '🐑', '🐟', '🦋', '🐙', '🐌', '🐝', '🦀'];
   const SORT_SETS = [
     { key: 'animales', label: 'Animales', e: '🐾', items: ['🐶', '🐱', '🐰', '🐮', '🐷', '🐸'] },
     { key: 'frutas', label: 'Frutas', e: '🧺', items: ['🍎', '🍌', '🍓', '🍐', '🍊', '🍇'] },
@@ -136,21 +137,19 @@ const Games = (function () {
       html: `<span class="swatch" style="background:${c.h}"></span>`,
       correct: c === t,
     }));
-    const things = COLOR_THINGS.filter((x) => cols.some((c) => c.n === x.c));
-    const useThing = things.length && Math.random() < 0.4;
-    if (useThing) {
-      const th = pick(things);
-      const target = cols.find((c) => c.n === th.c);
-      const others2 = sample(cols.filter((c) => c !== target), 2);
+    // Dibujo de UN solo color (sin detalles de otros colores) para que no haya dudas
+    if (Math.random() < 0.4) {
+      const sh = pick(SHAPES.filter((s) => s.n !== 'rectángulo'));
+      const de = sh.art === 'la' ? 'de la' : 'del';
       return {
         tag: 'colores',
         steps: [{
           tag: 'colores',
-          visual: `<div class="bigemoji">${th.e}</div>`,
-          prompt: 'Toca el color de este dibujo',
-          speak: 'Toca el color de este dibujo',
+          visual: `<div class="bigshape"><svg viewBox="0 0 100 100" class="shape">${sh.svg(t.h)}</svg></div>`,
+          prompt: `Toca el color ${de} ${sh.n}`,
+          speak: `Toca el color ${de} ${sh.n}`,
           layout: 'swatch',
-          options: shuffle([target, ...others2]).map((c) => ({ html: `<span class="swatch" style="background:${c.h}"></span>`, correct: c === target })),
+          options,
         }],
       };
     }
@@ -167,8 +166,10 @@ const Games = (function () {
   }
 
   function shapeQ() {
-    const t = pick(SHAPES);
-    const others = sample(SHAPES.filter((s) => s !== t), 2);
+    // Sin rectángulo: se parece demasiado al cuadrado y confunde a los más pequeños
+    const pool = SHAPES.filter((s) => s.n !== 'rectángulo');
+    const t = pick(pool);
+    const others = sample(pool.filter((s) => s !== t), 2);
     const cols = sample(COLORS, 3);
     const all = shuffle([t, ...others]);
     return {
@@ -276,7 +277,8 @@ const Games = (function () {
   }
 
   function connectShadowQ(pairs) {
-    const an = sample(ANIMALS, pairs);
+    // Solo animales con silueta muy distinta (las caras redondas se confunden entre sí)
+    const an = sample(SHADOW_ANIMALS, pairs).map((e) => ({ e }));
     return {
       type: 'connect',
       tag: 'unir-sombras',
