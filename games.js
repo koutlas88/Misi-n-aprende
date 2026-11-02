@@ -515,7 +515,8 @@ const Games = (function () {
   const SAY = { '+': 'más', '−': 'menos', '×': 'por' };
 
   function problemQ(level) {
-    const kinds = level <= 2 ? ['add', 'sub'] : level === 3 ? ['add', 'sub', 'cmp', 'tot'] : ['add', 'sub', 'cmp', 'tot', 'mul'];
+    // La multiplicación ('mul') está preparada pero desactivada hasta que la estudie
+    const kinds = level <= 2 ? ['add', 'sub'] : ['add', 'sub', 'cmp', 'tot'];
     const kind = pick(kinds);
     const rng = level === 1 ? [5, 10] : level === 2 ? [6, 20] : level === 3 ? [10, 40] : [15, 99];
     let a, b, ans, text, e;
@@ -525,8 +526,12 @@ const Games = (function () {
       b = sum - a;
       ans = a + b;
     } else if (kind === 'sub' || kind === 'cmp') {
-      a = rnd(rng[0], rng[1]);
-      b = rnd(2, a - 2);
+      for (let t = 0; t < 300; t++) {
+        a = rnd(rng[0], rng[1]);
+        b = rnd(2, a - 2);
+        // Por encima de 20: que la resta no necesite "llevada" (las unidades de b no superan a las de a)
+        if (rng[1] <= 20 || b % 10 <= a % 10) break;
+      }
       ans = a - b;
     } else {
       a = rnd(2, 5);
@@ -563,7 +568,7 @@ const Games = (function () {
         hint: kind === 'add' ? 'Le dan o juntan cosas, así que al final hay MÁS.' : 'Le quitan cosas o se van, así que al final hay MENOS.',
       });
     }
-    const symOptions = level >= 3 || kind === 'mul' ? ['+', '−', '×'] : ['+', '−'];
+    const symOptions = kind === 'mul' ? ['+', '−', '×'] : ['+', '−'];
     const opSet = symOptions.includes(sym) ? symOptions : [sym, ...symOptions.slice(0, 2)];
     steps.push({
       tag: 'prob-operacion',
@@ -625,13 +630,9 @@ const Games = (function () {
       { id: 'h6', title: 'Sumas con llevada', icon: '🚀', sticker: '🔥', rounds: 6, gen: () => sumQ(100, true) },
       { id: 'h7', title: 'Series de números', icon: '🔢', sticker: '⭐', rounds: 6, gen: () => seriesQ([2, 5, 10], false) },
       { id: 'h8', title: 'Problemas: comparar y total', icon: '⚖️', sticker: '🏆', rounds: 4, gen: () => problemQ(3) },
-      { id: 'h9', title: 'Tablas del 2, 5 y 10', icon: '✖️', sticker: '🧭', rounds: 6, gen: () => tablesQ([2, 5, 10]) },
       { id: 'h10', title: 'El reloj', icon: '⏰', sticker: '🪐', rounds: 6, gen: () => clockQ(1) },
       { id: 'h17', title: 'Ordena de mayor a menor', icon: '📉', sticker: '👑', rounds: 4, gen: () => dragOrderQ(100, true) },
-      { id: 'h11', title: 'Restas con llevada', icon: '🛡️', sticker: '🐊', rounds: 6, gen: () => subQ(100, true) },
       { id: 'h12', title: 'Problemas de dino', icon: '🦖', sticker: '🦎', rounds: 4, gen: () => problemQ(4) },
-      { id: 'h18', title: 'Une las tablas', icon: '🔗', sticker: '🌟', rounds: 3, gen: () => connectTablesQ([2, 3, 4, 5, 10], 4) },
-      { id: 'h13', title: 'Tablas del 3 y 4', icon: '💎', sticker: '💎', rounds: 6, gen: () => tablesQ([3, 4]) },
       { id: 'h14', title: 'El reloj experto', icon: '🕰️', sticker: '🚀', rounds: 6, gen: () => clockQ(2) },
     ],
   };
@@ -647,8 +648,8 @@ const Games = (function () {
       { min: 0, icon: '🥚', title: 'Huevito' },
       { min: 6, icon: '🦎', title: 'Dinito' },
       { min: 14, icon: '🦕', title: 'Dino joven' },
-      { min: 26, icon: '🦖', title: 'Dino fuerte' },
-      { min: 40, icon: '👑', title: 'Rey de los dinos' },
+      { min: 24, icon: '🦖', title: 'Dino fuerte' },
+      { min: 34, icon: '👑', title: 'Rey de los dinos' },
     ],
   };
 
