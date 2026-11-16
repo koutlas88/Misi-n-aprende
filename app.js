@@ -318,20 +318,20 @@ const MG_BUNDLE = (function () {
       },
       toolsHTML: '<div class="paint-tools">'
         + colors.map((c, i) => `<button class="ptool${i === 0 ? ' on' : ''}" data-act="mg-tool" data-v="${c}" style="background:${c}" aria-label="Color"></button>`).join('')
-        + '<button class="ptool" data-act="mg-tool" data-v="rainbow" aria-label="Arcoíris">🌈</button>'
+        + '<button class="ptool" data-act="mg-tool" data-v="rainbow" aria-label="'+Games.L('Arcoíris', 'Rainbow')+'">🌈</button>'
         + '<button class="ptool" data-act="mg-tool" data-v="eraser" aria-label="Goma">🧽</button>'
-        + '<button class="ptool" data-act="mg-tool" data-v="clear" aria-label="Borrar todo">🗑️</button></div>',
+        + '<button class="ptool" data-act="mg-tool" data-v="clear" aria-label="'+Games.L('Borrar todo', 'Clear all')+'">🗑️</button></div>',
     };
   }
 
   const DEFS = {
     peque: [
-      { id: 'burbujas', title: 'Burbujas arcoíris', icon: '🎈', how: '¡Toca las burbujas para explotarlas!', make: bubbles },
-      { id: 'pintar', title: 'Pinta el arcoíris', icon: '🎨', how: '¡Dibuja con el dedo y elige colores!', make: paint, noScore: true, seconds: 90 },
+      { id: 'burbujas', get title() { return Games.L('Burbujas arcoíris', 'Rainbow bubbles'); }, icon: '🎈', get how() { return Games.L('¡Toca las burbujas para explotarlas!', 'Tap the bubbles to pop them!'); }, make: bubbles },
+      { id: 'pintar', get title() { return Games.L('Pinta el arcoíris', 'Paint a rainbow'); }, icon: '🎨', get how() { return Games.L('¡Dibuja con el dedo y elige colores!', 'Draw with your finger and pick colours!'); }, make: paint, noScore: true, seconds: 90 },
     ],
     explorador: [
-      { id: 'huevos', title: 'Salva los huevos', icon: '🥚', how: 'Mueve el nido con el dedo para atrapar los huevos. ¡Los dorados valen más!', make: eggs },
-      { id: 'salto', title: 'Salto del dino', icon: '🦖', how: 'Toca la pantalla para saltar los obstáculos.', make: runner, needsImg: true },
+      { id: 'huevos', get title() { return Games.L('Salva los huevos', 'Save the eggs'); }, icon: '🥚', get how() { return Games.L('Mueve el nido con el dedo para atrapar los huevos. ¡Los dorados valen más!', 'Move the nest with your finger to catch the eggs. The golden ones are worth more!'); }, make: eggs },
+      { id: 'salto', get title() { return Games.L('Salto del dino', 'Dino jump'); }, icon: '🦖', get how() { return Games.L('Toca la pantalla para saltar los obstáculos.', 'Tap the screen to jump over the obstacles.'); }, make: runner, needsImg: true },
     ],
   };
 
@@ -424,12 +424,14 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
 
   const KEY = 'mision-aprende-v1';
   const $app = document.getElementById('app');
-  const PRAISE = ['¡Muy bien!', '¡Genial!', '¡Eso es!', '¡Fantástico!', '¡Lo has conseguido!'];
+  const PRAISE_TXT = [['¡Muy bien!', 'Well done!'], ['¡Genial!', 'Great!'], ['¡Eso es!', "That's it!"], ['¡Fantástico!', 'Fantastic!'], ['¡Lo has conseguido!', 'You did it!']];
+  const praises = () => PRAISE_TXT.map((x) => L(x[0], x[1]));
 
   /* ---------- Utilidades ---------- */
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmtNums = (s) => esc(s).replace(/\d+/g, '<b>$&</b>');
   const pick = Games.pick;
+  const L = Games.L;
   const todayKey = (d) => {
     d = d || new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -454,7 +456,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
   });
   function normalize(s) {
     s = s && typeof s === 'object' ? s : {};
-    s.settings = Object.assign({ sound: true, voice: '', rate: 0.92, rewardEvery: 5 }, s.settings || {});
+    s.settings = Object.assign({ sound: true, voice: '', rate: 0.92, rewardEvery: 5, lang: Games.getLang() }, s.settings || {});
     s.profiles = s.profiles || {};
     const OLD_WORN = { gafas: 'face', corona: 'head', capa: 'back', gorro: 'head', pajarita: 'body', bufanda: 'body' };
     Object.keys(Games.PROFILES).forEach((id) => {
@@ -484,6 +486,17 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     } catch (e) { /* sin datos */ }
     return normalize({});
   }
+  // Idioma: el guardado; si es la primera vez, el del navegador; si ya había datos sin idioma, español
+  (function initLang() {
+    let l = '';
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) l = (JSON.parse(raw).settings || {}).lang || 'es';
+      else l = /^en/i.test(navigator.language || '') ? 'en' : 'es';
+    } catch (e) { l = 'es'; }
+    Games.setLang(l);
+    try { document.documentElement.lang = l; document.title = l === 'en' ? 'Learning Mission' : 'Misión Aprende'; } catch (e) { /* nada */ }
+  })();
   let S = load();
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* sin espacio */ }
@@ -571,25 +584,32 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     if (/natural|neural|online/i.test(n)) s += 100;
     if (/premium|enhanced|mejorada|siri/i.test(n)) s += 80;
     if (/google/i.test(n)) s += 30;
-    if (/elena|alvaro|álvaro|paulina|m[oó]nica|marisol|helena|laura|luc[ií]a|sabina|jorge|diego|ang[eé]lica|mia/i.test(n)) s += 20;
-    if (/^es[-_]ES/i.test(v.lang)) s += 5;
+    if (Games.getLang() === 'en') {
+      if (/samantha|daniel|serena|karen|moira|tessa|fiona|oliver|kate|libby|sonia|maisie|hazel|susan|jenny|aria|ryan|george|zira|female/i.test(n)) s += 20;
+      if (/^en[-_]GB/i.test(v.lang)) s += 8;
+    } else {
+      if (/elena|alvaro|álvaro|paulina|m[oó]nica|marisol|helena|laura|luc[ií]a|sabina|jorge|diego|ang[eé]lica|mia/i.test(n)) s += 20;
+      if (/^es[-_]ES/i.test(v.lang)) s += 5;
+    }
     return s;
   }
-  const esVoices = () => voices.filter((x) => /^es/i.test(x.lang));
+  const langRe = () => (Games.getLang() === 'en' ? /^en/i : /^es/i);
+  const esVoices = () => voices.filter((x) => langRe().test(x.lang));
   function bestVoice() {
     if (S.settings.voice) {
       const f = voices.find((x) => x.name === S.settings.voice);
-      if (f) return f;
+      if (f && langRe().test(f.lang)) return f;
     }
     return esVoices().sort((a, b) => voiceScore(b) - voiceScore(a))[0] || null;
   }
   function speak(text) {
     if (!S.settings.sound || !hasSpeech || !text) return;
     try {
-      const clean = String(text).replace(/−/g, ' menos ').replace(/×/g, ' por ').replace(/\+/g, ' más ').replace(/=/g, ' igual a ');
+      const en = Games.getLang() === 'en';
+      const clean = String(text).replace(/−/g, en ? ' minus ' : ' menos ').replace(/×/g, en ? ' times ' : ' por ').replace(/\+/g, en ? ' plus ' : ' más ').replace(/=/g, en ? ' equals ' : ' igual a ');
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(clean);
-      u.lang = 'es-ES';
+      u.lang = Games.getLang() === 'en' ? 'en-GB' : 'es-ES';
       u.rate = S.settings.rate || 0.92;
       u.pitch = 1.05;
       const v = bestVoice();
@@ -758,6 +778,10 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
   ];
   const ITEM = {};
   ITEMS.forEach((it) => { ITEM[it.id] = it; });
+  const ITEM_EN = { corona: 'Crown', gorro: 'Party hat', mago: 'Wizard hat', gorra: 'Cap', flores: 'Flower crown', gafas: 'Sunglasses', redondas: 'Round glasses', antifaz: 'Hero mask', corazon: 'Heart glasses', bigote: 'Moustache', pajarita: 'Bow tie', bufanda: 'Scarf', medalla: 'Medal', collar: 'Flower necklace', corbata: 'Tie', capa: 'Red cape', capaazul: 'Blue cape', alashada: 'Fairy wings', alasmurci: 'Bat wings', mochila: 'Backpack' };
+  const SEC_EN = { head: 'Head', face: 'Face', body: 'Body', back: 'Back' };
+  const itemName = (it) => L(it.name, ITEM_EN[it.id]);
+  const secName = (sec) => L(sec.name, SEC_EN[sec.id]);
   const emptyWorn = () => ({ head: '', face: '', body: '', back: '' });
   const wornList = (worn) => (worn && !Array.isArray(worn) ? SECS.map((s) => worn[s.id]).filter(Boolean) : []);
   function itemSVG(id, fam) {
@@ -796,6 +820,22 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     setTimeout(() => { if (el) el.classList.remove(mood); }, 900);
   }
 
+  /* ---------- Cambio de idioma ---------- */
+  function setLanguage(l) {
+    const old = Games.PROFILES.peque.defaultNames;
+    Games.setLang(l);
+    S.settings.lang = l;
+    // Los nombres que eran los de por defecto pasan al idioma nuevo (los que escribió la familia se respetan)
+    Object.keys(Games.PROFILES).forEach((id) => {
+      const pr = Games.PROFILES[id];
+      if (pr.defaultNames.includes(P(id).name)) P(id).name = pr.defaultName;
+    });
+    try { document.documentElement.lang = l; document.title = l === 'en' ? 'Learning Mission' : 'Misión Aprende'; } catch (e) { /* nada */ }
+    stopSpeech();
+    save();
+    return old;
+  }
+
   /* ---------- Estado de navegación ---------- */
   let cur = { pid: null };
   let run = null;
@@ -804,7 +844,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
   const setTheme = (t) => { document.body.dataset.theme = t; };
 
   function header(title, back) {
-    return `<header class="top">${back ? `<button class="icon" data-act="${back}" aria-label="Volver">⬅️</button>` : '<span style="width:48px"></span>'}<div class="ttl">${title}</div><button class="icon" data-act="sound" aria-label="Sonido">${S.settings.sound ? '🔊' : '🔇'}</button></header>`;
+    return `<header class="top">${back ? `<button class="icon" data-act="${back}" aria-label="${L('Volver', 'Back')}">⬅️</button>` : '<span style="width:48px"></span>'}<div class="ttl">${title}</div><button class="icon" data-act="sound" aria-label="${L('Sonido', 'Sound')}">${S.settings.sound ? '🔊' : '🔇'}</button></header>`;
   }
 
   /* ---------- Inicio ---------- */
@@ -820,10 +860,10 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       const p = P(cur0);
       const rk = rank(cur0);
       const stars = ws.reduce((n, x) => n + totalStars(x), 0);
-      const sub = ws.length > 1 ? `${ws.length} mundos` : pr.world;
+      const sub = ws.length > 1 ? L(`${ws.length} mundos`, `${ws.length} worlds`) : pr.world;
       return `<button class="profile ${kid}" data-act="kid" data-id="${kid}"><span class="em">${mascotHTML(cur0, 'idle')}</span><span><b>${esc(P(kid).name)}</b><span>${sub}</span><span>${rk.icon} ${rk.title} · ⭐ ${stars}</span></span></button>`;
     }).join('');
-    $app.innerHTML = `<div class="home">${header('', '')}<h1>Misión Aprende</h1><p class="sub">¿Quién juega hoy?</p>${cards}<button class="parent-link" data-act="parent">👨‍👩‍👧 Zona de padres</button></div>`;
+    $app.innerHTML = `<div class="home">${header('', '')}<h1>${L('Misión Aprende', 'Learning Mission')}</h1><p class="sub">${L('¿Quién juega hoy?', 'Who is playing today?')}</p>${cards}<button class="parent-link" data-act="parent">${L('👨‍👩‍👧 Zona de padres', '👨‍👩‍👧 Parents\' area')}</button> <button class="parent-link" data-act="lang">🌐 ${L('English', 'Español')}</button></div>`;
   }
 
   function openKid(kid) {
@@ -841,12 +881,12 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       const total = missionsOf(id).length;
       if (!worldUnlocked(id)) {
         const prev = worldsOf(kid).find((x) => Games.PROFILES[x].w === pr.w - 1);
-        return `<div class="world locked"><span class="em">🔒</span><span><b>${esc(pr.world)}</b><span>Se abre al completar ${pr.unlockAfter} misiones del mundo anterior (${doneCount(prev)}/${pr.unlockAfter})</span></span></div>`;
+        return `<div class="world locked"><span class="em">🔒</span><span><b>${esc(pr.world)}</b><span>${L(`Se abre al completar ${pr.unlockAfter} misiones del mundo anterior`, `Opens after completing ${pr.unlockAfter} missions in the previous world`)} (${doneCount(prev)}/${pr.unlockAfter})</span></span></div>`;
       }
       const rk = rank(id);
-      return `<button class="world ${id}" data-act="profile" data-id="${id}"><span class="em">${mascotHTML(id, 'idle')}</span><span><b>${esc(pr.world)}</b><span>${rk.icon} ${rk.title} · ⭐ ${totalStars(id)}</span><span>✅ ${doneCount(id)}/${total} misiones</span></span></button>`;
+      return `<button class="world ${id}" data-act="profile" data-id="${id}"><span class="em">${mascotHTML(id, 'idle')}</span><span><b>${esc(pr.world)}</b><span>${rk.icon} ${rk.title} · ⭐ ${totalStars(id)}</span><span>✅ ${doneCount(id)}/${total} ${L('misiones', 'missions')}</span></span></button>`;
     }).join('');
-    $app.innerHTML = `${header('Elige tu mundo', 'back-home')}<div class="worlds">${cards}</div>`;
+    $app.innerHTML = `${header(L('Elige tu mundo', 'Choose your world'), 'back-home')}<div class="worlds">${cards}</div>`;
   }
 
   /* ---------- Mapa de la isla ---------- */
@@ -862,13 +902,13 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     const every = S.settings.rewardEvery;
     if (!every) return '';
     const g = P(pid).gems || 0;
-    return `<div class="gems"><span>🎁</span>${Array.from({ length: every }, (_, k) => `<i class="${k < g ? 'on' : ''}"></i>`).join('')}<small>${every - g} para el regalo</small></div>`;
+    return `<div class="gems"><span>🎁</span>${Array.from({ length: every }, (_, k) => `<i class="${k < g ? 'on' : ''}"></i>`).join('')}<small>${L(`${every - g} para el regalo`, `${every - g} to go for the gift`)}</small></div>`;
   }
   function giftButtons(pid) {
     const p = P(pid);
     let h = '';
-    if (p.pending > 0) h += `<button class="btn giftbtn" data-act="gift">🎁 ¡Tienes ${p.pending > 1 ? p.pending + ' regalos' : 'un regalo'} para abrir!</button>`;
-    if (p.mg > 0 && MG.DEFS[kidOf(pid)].length) h += '<button class="btn giftbtn mgbtn" data-act="mg-choose">🎮 ¡Tienes un minijuego!</button>';
+    if (p.pending > 0) h += `<button class="btn giftbtn" data-act="gift">🎁 ${p.pending > 1 ? L(`¡Tienes ${p.pending} regalos para abrir!`, `You have ${p.pending} gifts to open!`) : L('¡Tienes un regalo para abrir!', 'You have a gift to open!')}</button>`;
+    if (p.mg > 0 && MG.DEFS[kidOf(pid)].length) h += `<button class="btn giftbtn mgbtn" data-act="mg-choose">🎮 ${L('¡Tienes un minijuego!', 'You have a mini-game!')}</button>`;
     return h;
   }
 
@@ -914,10 +954,10 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     const deco = DECO[pid].map((e, k) => `<span class="deco" style="left:${DECO_POS[k][0]}%;top:${DECO_POS[k][1]}%">${e}</span>`).join('');
     $app.innerHTML = `${header(esc(pr.world), hasManyWorlds(kidOf(pid)) ? 'back-worlds' : 'back-home')}
       <div class="card"><div class="hero"><div class="avatar">${mascotHTML(pid, 'idle')}</div><div class="grow"><b>${esc(p.name)}</b><br>${rk.icon} ${rk.title}</div><div class="stars">⭐ ${totalStars(pid)}</div></div>
-      <div class="today">Hoy: ${dots || '∞'} ${allowed === Infinity ? '' : `<span>${Math.min(playedToday(pid), allowed)}/${allowed}</span>`}</div>${gemsHTML(pid)}</div>${giftButtons(pid)}
-      <div class="zonebar"><button class="zbtn" data-act="zone-prev" ${cur.zone <= 0 ? 'disabled' : ''} aria-label="Zona anterior">◀</button><div class="zname"><b>${esc(zname)}</b><span>Zona ${cur.zone + 1} de ${zones} · ✅ ${zDone}/${zms.length}</span></div><button class="zbtn" data-act="zone-next" ${cur.zone >= zones - 1 ? 'disabled' : ''} aria-label="Zona siguiente">▶</button></div>
+      <div class="today">${L('Hoy:', 'Today:')} ${dots || '∞'} ${allowed === Infinity ? '' : `<span>${Math.min(playedToday(pid), allowed)}/${allowed}</span>`}</div>${gemsHTML(pid)}</div>${giftButtons(pid)}
+      <div class="zonebar"><button class="zbtn" data-act="zone-prev" ${cur.zone <= 0 ? 'disabled' : ''} aria-label="${L('Zona anterior', 'Previous zone')}">◀</button><div class="zname"><b>${esc(zname)}</b><span>${L(`Zona ${cur.zone + 1} de ${zones}`, `Zone ${cur.zone + 1} of ${zones}`)} · ✅ ${zDone}/${zms.length}</span></div><button class="zbtn" data-act="zone-next" ${cur.zone >= zones - 1 ? 'disabled' : ''} aria-label="${L('Zona siguiente', 'Next zone')}">▶</button></div>
       <div class="islandmap z${cur.zone % 5}" id="island"><svg class="path" id="islpath" aria-hidden="true"></svg>${deco}${rows}<div class="map-mascot" id="mapmascot">${mascotHTML(pid, 'idle')}</div></div>
-      <div class="row2"><button class="btn album-btn" data-act="album">${famOf(pid) === 'peque' ? '📒 Pegatinas' : '🦴 Colección'}</button><button class="btn album-btn" data-act="wardrobe">👕 Mi armario</button></div>`;
+      <div class="row2"><button class="btn album-btn" data-act="album">${famOf(pid) === 'peque' ? L('📒 Pegatinas', '📒 Stickers') : L('🦴 Colección', '🦴 Collection')}</button><button class="btn album-btn" data-act="wardrobe">${L('👕 Mi armario', '👕 My wardrobe')}</button></div>`;
     requestAnimationFrame(drawMap);
   }
 
@@ -956,13 +996,13 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     const p = P(pid);
     const all = missionsOf(pid).map((m) => m.sticker);
     const items = all.map((s) => (p.stickers.includes(s) ? `<div>${s}</div>` : '<div class="locked">?</div>')).join('');
-    $app.innerHTML = `${header(famOf(pid) === 'peque' ? 'Mis pegatinas' : 'Mi colección', 'back-map')}<div class="card"><p>Has conseguido <b>${all.filter((s) => p.stickers.includes(s)).length}</b> de ${all.length}. ¡Completa misiones para ganar más!</p></div><div class="album">${items}</div>`;
+    $app.innerHTML = `${header(famOf(pid) === 'peque' ? L('Mis pegatinas', 'My stickers') : L('Mi colección', 'My collection'), 'back-map')}<div class="card"><p>${L('Has conseguido', 'You have')} <b>${all.filter((s) => p.stickers.includes(s)).length}</b> ${L('de', 'of')} ${all.length}${L('. ¡Completa misiones para ganar más!', '. Complete missions to win more!')}</p></div><div class="album">${items}</div>`;
   }
 
   function renderDoneToday(pid) {
     stopSpeech();
-    const msg = '¡Misión cumplida por hoy! Mañana te esperan más aventuras.';
-    $app.innerHTML = `${header('', 'back-map')}<div class="card result">${mascotHTML(pid, 'idle happy', null)}<h1>¡Misión cumplida por hoy!</h1><p class="msg">Has hecho ${playedToday(pid)} misiones. Ahora toca descansar o jugar fuera. ¡Mañana hay más aventuras!</p><div class="btns"><button class="btn" data-act="back-home">Volver al inicio</button></div></div>`;
+    const msg = L('¡Misión cumplida por hoy! Mañana te esperan más aventuras.', 'Missions done for today! More adventures are waiting tomorrow.');
+    $app.innerHTML = `${header('', 'back-map')}<div class="card result">${mascotHTML(pid, 'idle happy', null)}<h1>${L('¡Misión cumplida por hoy!', 'Missions done for today!')}</h1><p class="msg">${L(`Has hecho ${playedToday(pid)} misiones. Ahora toca descansar o jugar fuera. ¡Mañana hay más aventuras!`, `You have done ${playedToday(pid)} missions. Now it's time to rest or play outside. There are more adventures tomorrow!`)}</p><div class="btns"><button class="btn" data-act="back-home">${L('Volver al inicio', 'Back to the start')}</button></div></div>`;
     rain(['⭐', '🌟', '✨']);
     setTimeout(() => speak(msg), 300);
   }
@@ -1001,10 +1041,10 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     run.counted = 0;
     let html = playHeader() + `<div class="progress">${progressDots()}</div>`;
     if (qu.story) {
-      html += `<div class="card story"><div class="storyvis">${qu.story.visual || ''}</div><p>${fmtNums(qu.story.text)}</p><button class="speakbtn" data-act="speak" data-t="story" aria-label="Escuchar">🔊</button></div>`;
+      html += `<div class="card story"><div class="storyvis">${qu.story.visual || ''}</div><p>${fmtNums(qu.story.text)}</p><button class="speakbtn" data-act="speak" data-t="story" aria-label="${L('Escuchar', 'Listen')}">🔊</button></div>`;
     }
     if (st.visual) html += `<div class="stvis">${st.visual}</div>`;
-    html += `<div class="promptrow"><h2 class="prompt">${st.prompt}</h2><button class="speakbtn" data-act="speak" data-t="step" aria-label="Escuchar">🔊</button></div>`;
+    html += `<div class="promptrow"><h2 class="prompt">${st.prompt}</h2><button class="speakbtn" data-act="speak" data-t="step" aria-label="${L('Escuchar', 'Listen')}">🔊</button></div>`;
     html += `<div class="options ${st.layout}">${st.options.map((o, k) => `<button class="opt" data-act="opt" data-i="${k}">${o.html}</button>`).join('')}</div><div class="hintbox" id="hint"></div>${mascotMini(run.pid)}`;
     $app.innerHTML = html;
     window.scrollTo(0, 0);
@@ -1024,7 +1064,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       fx.ok();
       burst(btn);
       react('happy');
-      speak(pick(PRAISE));
+      speak(pick(praises()));
       save();
       setTimeout(() => {
         run.step++;
@@ -1045,7 +1085,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
         hint.textContent = '💡 ' + st.hint;
         speak(st.hint.replace(/[➕➖✖️]/g, ''));
       } else {
-        speak('¡Casi! Inténtalo otra vez.');
+        speak(L('¡Casi! Inténtalo otra vez.', 'Almost! Try again.'));
       }
       if (run.qErr >= 2) {
         const idx = st.options.findIndex((x) => x.correct);
@@ -1101,7 +1141,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     run.qErr++;
     fx.bad();
     react('sad');
-    speak(msg || '¡Casi! Inténtalo otra vez.');
+    speak(msg || L('¡Casi! Inténtalo otra vez.', 'Almost! Try again.'));
     save();
   }
   function completeInteractive() {
@@ -1111,7 +1151,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     run.units++;
     fx.ok();
     react('happy');
-    speak(pick(PRAISE));
+    speak(pick(praises()));
     save();
     setTimeout(() => { run.q++; nextQuestion(); }, 1200);
   }
@@ -1133,16 +1173,16 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
         <div class="pile" id="pile">${q.tokens.map((h) => `<div class="token shapetok" data-key="${h.id}">${h.tok}</div>`).join('')}</div>`;
     } else if (q.type === 'drag-order') {
       area = `<div class="slots">${q.sorted.map((_, i) => `<div class="slot" data-zone="${i}"></div>`).join('')}</div>
-        <p class="slotsnote">${q.desc ? 'el más grande ➜ el más pequeño' : 'el más pequeño ➜ el más grande'}</p>
+        <p class="slotsnote">${q.desc ? L('el más grande ➜ el más pequeño', 'the biggest ➜ the smallest') : L('el más pequeño ➜ el más grande', 'the smallest ➜ the biggest')}</p>
         <div class="pile" id="pile">${q.nums.map((n) => `<div class="token numtok" data-key="${n}">${n}</div>`).join('')}</div>`;
     } else if (q.type === 'connect') {
       area = `<div class="connect" id="conn"><svg class="lines" id="clines" aria-hidden="true"></svg>
         <div class="col">${q.left.map((l) => `<div class="cnode left" data-id="${l.id}">${l.html}</div>`).join('')}</div>
         <div class="col">${q.right.map((r) => `<div class="cnode right" data-id="${r.id}">${r.html}</div>`).join('')}</div></div>
-        <p class="tiny">Arrastra el dedo desde un punto hasta su pareja</p>`;
+        <p class="tiny">${L('Arrastra el dedo desde un punto hasta su pareja', 'Drag your finger from one dot to its partner')}</p>`;
     }
     $app.innerHTML = playHeader() + `<div class="progress">${progressDots()}</div>
-      <div class="promptrow"><h2 class="prompt">${q.prompt}</h2><button class="speakbtn" data-act="speak" data-t="step" aria-label="Escuchar">🔊</button></div>
+      <div class="promptrow"><h2 class="prompt">${q.prompt}</h2><button class="speakbtn" data-act="speak" data-t="step" aria-label="${L('Escuchar', 'Listen')}">🔊</button></div>
       <div class="play-area">${area}</div>${mascotMini(run.pid)}`;
     window.scrollTo(0, 0);
     wireInteractive(q);
@@ -1176,7 +1216,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
           if (left === 0) completeInteractive();
           return true;
         }
-        interactiveError('Ese no va ahí. ¡Prueba en el otro grupo!');
+        interactiveError(L('Ese no va ahí. ¡Prueba en el otro grupo!', "That doesn't go there. Try the other group!"));
         return false;
       });
     } else if (q.type === 'drag-shape') {
@@ -1193,7 +1233,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
           if (left === 0) completeInteractive();
           return true;
         }
-        interactiveError('Esa forma no encaja ahí. ¡Prueba en otro hueco!');
+        interactiveError(L('Esa forma no encaja ahí. ¡Prueba en otro hueco!', "That shape doesn't fit there. Try another hole!"));
         return false;
       });
     } else if (q.type === 'drag-order') {
@@ -1209,7 +1249,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
           if (filled === q.sorted.length) completeInteractive();
           return true;
         }
-        interactiveError(q.desc ? 'Ese no va ahí. Busca un número más grande.' : 'Ese no va ahí. Busca un número más pequeño.');
+        interactiveError(q.desc ? L('Ese no va ahí. Busca un número más grande.', "That doesn't go there. Look for a bigger number.") : L('Ese no va ahí. Busca un número más pequeño.', "That doesn't go there. Look for a smaller number."));
         if (run.qErr >= 2) {
           const firstEmpty = $app.querySelector('.slot:not(.filled)');
           const want = q.sorted[parseInt(firstEmpty.dataset.zone, 10)];
@@ -1274,7 +1314,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
               if (matched === q.left.length) completeInteractive();
               return;
             }
-            interactiveError('Esa no es su pareja. ¡Inténtalo otra vez!');
+            interactiveError(L('Esa no es su pareja. ¡Inténtalo otra vez!', "That's not its partner. Try again!"));
           }
           line.remove();
         };
@@ -1289,12 +1329,12 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
   function startMemory() {
     const pairs = run.m.pairs;
     const an = Games.sample(Games.ANIMALS, pairs);
-    const cards = Games.shuffle(an.concat(an)).map((a, id) => ({ id, e: a.e, pl: a.pl, flipped: false, matched: false }));
+    const cards = Games.shuffle(an.concat(an)).map((a, id) => ({ id, e: a.e, pl: a.pl, en: a.en, flipped: false, matched: false }));
     run.mem = { cards, open: [], matched: 0, lock: false, pairs };
     run.units = pairs;
-    const grid = cards.map((c, i) => `<button class="mcard" data-act="card" data-i="${i}" aria-label="Carta"><span class="inner"><span class="face front">❓</span><span class="face back">${c.e}</span></span></button>`).join('');
-    $app.innerHTML = `${playHeader()}<div class="promptrow"><h2 class="prompt">Encuentra las parejas</h2><button class="speakbtn" data-act="speak" data-t="mem">🔊</button></div><div class="mgrid ${cards.length > 6 ? 'c4' : ''}">${grid}</div>${mascotMini(run.pid)}`;
-    setTimeout(() => speak('Encuentra las parejas de animales'), 250);
+    const grid = cards.map((c, i) => `<button class="mcard" data-act="card" data-i="${i}" aria-label="${L('Carta', 'Card')}"><span class="inner"><span class="face front">❓</span><span class="face back">${c.e}</span></span></button>`).join('');
+    $app.innerHTML = `${playHeader()}<div class="promptrow"><h2 class="prompt">${L('Encuentra las parejas', 'Find the pairs')}</h2><button class="speakbtn" data-act="speak" data-t="mem">🔊</button></div><div class="mgrid ${cards.length > 6 ? 'c4' : ''}">${grid}</div>${mascotMini(run.pid)}`;
+    setTimeout(() => speak(L('Encuentra las parejas de animales', 'Find the pairs of animals')), 250);
   }
 
   function flipCard(i) {
@@ -1323,7 +1363,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
           fx.ok();
           burst(ea);
           react('happy');
-          speak('¡Pareja de ' + ca.pl + '!');
+          speak(L('¡Pareja de ' + ca.pl + '!', 'A pair of ' + (ca.en ? ca.en[1] : ca.pl) + '!'));
           if (mem.matched === mem.pairs) setTimeout(finish, 1400);
         } else {
           run.errs++;
@@ -1342,7 +1382,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
   function finishTest() {
     const { pid, i } = run;
     const hasNext = i + 1 < missionsOf(pid).length;
-    $app.innerHTML = `${header('', null)}<div class="card result">${mascotHTML(pid, 'idle happy')}<h1>🧪 Misión probada</h1><p class="msg">Modo prueba: no se ha guardado ningún progreso, estrella ni registro.</p><div class="btns">${hasNext ? '<button class="btn" data-act="next">Probar la siguiente ▶</button>' : ''}<button class="btn alt" data-act="again">🔁 Repetir esta misión</button><button class="btn alt" data-act="to-parent">⬅️ Volver a la zona de padres</button></div></div>`;
+    $app.innerHTML = `${header('', null)}<div class="card result">${mascotHTML(pid, 'idle happy')}<h1>${L('🧪 Misión probada', '🧪 Mission tested')}</h1><p class="msg">${L('Modo prueba: no se ha guardado ningún progreso, estrella ni registro.', 'Test mode: no progress, stars or records were saved.')}</p><div class="btns">${hasNext ? `<button class="btn" data-act="next">${L('Probar la siguiente ▶', 'Try the next one ▶')}</button>` : ''}<button class="btn alt" data-act="again">${L('🔁 Repetir esta misión', '🔁 Repeat this mission')}</button><button class="btn alt" data-act="to-parent">${L('⬅️ Volver a la zona de padres', '⬅️ Back to the parents\' area')}</button></div></div>`;
     window.scrollTo(0, 0);
     setTheme(pid);
     fx.win();
@@ -1376,25 +1416,25 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     const levelUp = rankNow.title !== run.rankBefore;
     const hasNext = i + 1 < missionsOf(pid).length && isUnlocked(pid, i + 1);
     const left = remaining(pid);
-    let btns = p.pending > 0 ? '<button class="btn giftbtn" data-act="gift">🎁 ¡Abrir el regalo!</button>' : '';
+    let btns = p.pending > 0 ? `<button class="btn giftbtn" data-act="gift">${L('🎁 ¡Abrir el regalo!', '🎁 Open the gift!')}</button>` : '';
     if (left > 0) {
-      if (hasNext) btns += '<button class="btn" data-act="next">Siguiente misión ▶</button>';
-      btns += '<button class="btn alt" data-act="again">🔁 Repetir esta misión</button>';
-      btns += '<button class="btn alt" data-act="back-map">🗺️ Volver al mapa</button>';
+      if (hasNext) btns += `<button class="btn" data-act="next">${L('Siguiente misión ▶', 'Next mission ▶')}</button>`;
+      btns += `<button class="btn alt" data-act="again">${L('🔁 Repetir esta misión', '🔁 Repeat this mission')}</button>`;
+      btns += `<button class="btn alt" data-act="back-map">${L('🗺️ Volver al mapa', '🗺️ Back to the map')}</button>`;
     } else {
-      btns += '<button class="btn" data-act="back-map">🌙 ¡Hasta mañana!</button>';
+      btns += `<button class="btn" data-act="back-map">${L('🌙 ¡Hasta mañana!', '🌙 See you tomorrow!')}</button>`;
     }
-    const msg = left > 0 ? '¡Buen trabajo! ¿Seguimos?' : '¡Misión cumplida por hoy! Mañana te esperan más aventuras.';
-    const giftLine = every ? (gotGift ? '<p class="msg">🎁 ¡Has ganado un regalo!</p>' : `<p class="tiny">🎁 Te faltan ${every - p.gems} misiones para el regalo</p>`) : '';
-    const what = famOf(pid) === 'peque' ? 'pegatina' : 'tesoro';
+    const msg = left > 0 ? L('¡Buen trabajo! ¿Seguimos?', 'Good job! Shall we keep going?') : L('¡Misión cumplida por hoy! Mañana te esperan más aventuras.', 'Missions done for today! More adventures are waiting tomorrow.');
+    const giftLine = every ? (gotGift ? `<p class="msg">${L('🎁 ¡Has ganado un regalo!', '🎁 You won a gift!')}</p>` : `<p class="tiny">${L(`🎁 Te faltan ${every - p.gems} misiones para el regalo`, `🎁 ${every - p.gems} more missions to win a gift`)}</p>`) : '';
+    const what = famOf(pid) === 'peque' ? L('pegatina', 'sticker') : L('tesoro', 'treasure');
     const nextW = worldsOf(kidOf(pid)).find((x) => Games.PROFILES[x].w === Games.PROFILES[pid].w + 1);
-    const worldLine = nextW && Games.PROFILES[nextW].unlockAfter === doneCount(pid) && rec.done === 1 ? `<p class="msg">🌍 ¡Se ha abierto un mundo nuevo: ${esc(Games.PROFILES[nextW].world)}!</p>` : '';
-    $app.innerHTML = `${header('', null)}<div class="card result">${mascotHTML(pid, 'idle happy')}<h1>¡Misión completada!</h1><div class="bigstars">${'⭐'.repeat(stars)}${'<span style="opacity:.25">⭐</span>'.repeat(3 - stars)}</div>${newSticker ? `<p>Nuevo ${what}:</p><div class="sticker-new">${newSticker}</div>` : ''}${levelUp ? `<div class="level-up">${rankNow.icon} ¡Subes de nivel: ${rankNow.title}!</div>` : ''}<p class="msg">${msg}</p>${giftLine}${worldLine}<div class="btns">${btns}</div></div>`;
+    const worldLine = nextW && Games.PROFILES[nextW].unlockAfter === doneCount(pid) && rec.done === 1 ? `<p class="msg">${L('🌍 ¡Se ha abierto un mundo nuevo: ', '🌍 A new world has opened: ')}${esc(Games.PROFILES[nextW].world)}!</p>` : '';
+    $app.innerHTML = `${header('', null)}<div class="card result">${mascotHTML(pid, 'idle happy')}<h1>${L('¡Misión completada!', 'Mission complete!')}</h1><div class="bigstars">${'⭐'.repeat(stars)}${'<span style="opacity:.25">⭐</span>'.repeat(3 - stars)}</div>${newSticker ? `<p>${L('Nuevo', 'New')} ${what}:</p><div class="sticker-new">${newSticker}</div>` : ''}${levelUp ? `<div class="level-up">${rankNow.icon} ${L('¡Subes de nivel: ', 'Level up: ')}${rankNow.title}!</div>` : ''}<p class="msg">${msg}</p>${giftLine}${worldLine}<div class="btns">${btns}</div></div>`;
     window.scrollTo(0, 0);
     setTheme(pid);
     fx.win();
     rain(['⭐', '🎉', '✨', newSticker || '🌟']);
-    setTimeout(() => speak(gotGift ? '¡Has ganado un regalo! Ábrelo.' : msg), 500);
+    setTimeout(() => speak(gotGift ? L('¡Has ganado un regalo! Ábrelo.', 'You won a gift! Open it.') : msg), 500);
   }
 
   /* ---------- Regalos y armario ---------- */
@@ -1407,8 +1447,8 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     cur.pid = pid;
     setTheme(pid);
     gift = { pid, test: !!test, taps: 0, opened: false };
-    $app.innerHTML = `${header('🎁 ¡Regalo!', test ? 'to-parent' : 'back-map')}<div class="card gift"><p class="msg">¡Toca el huevo para abrirlo!</p><button class="egg-btn" id="egg" data-act="egg" aria-label="Huevo sorpresa">${EGG_SVG}</button><p class="tiny">Toca 3 veces</p></div>`;
-    setTimeout(() => speak('¡Toca el huevo para abrirlo!'), 250);
+    $app.innerHTML = `${header(L('🎁 ¡Regalo!', '🎁 A gift!'), test ? 'to-parent' : 'back-map')}<div class="card gift"><p class="msg">${L('¡Toca el huevo para abrirlo!', 'Tap the egg to open it!')}</p><button class="egg-btn" id="egg" data-act="egg" aria-label="${L('Huevo sorpresa', 'Surprise egg')}">${EGG_SVG}</button><p class="tiny">${L('Toca 3 veces', 'Tap 3 times')}</p></div>`;
+    setTimeout(() => speak(L('¡Toca el huevo para abrirlo!', 'Tap the egg to open it!')), 250);
   }
 
   function tapEgg(btn) {
@@ -1435,20 +1475,20 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       save();
     }
     const wornShow = test ? Object.assign(emptyWorn(), acc ? { [acc.sec]: acc.id } : {}) : p.worn;
-    const title = acc ? `¡Nuevo: ${acc.name}!` : '¡Superpremio! Ya tienes toda la ropa';
+    const title = acc ? L(`¡Nuevo: ${itemName(acc)}!`, `New: ${itemName(acc)}!`) : L('¡Superpremio! Ya tienes toda la ropa', 'Super prize! You have all the clothes');
     let btns = '';
     if (test) {
-      btns = '<button class="btn" data-act="to-parent">⬅️ Volver a la zona de padres</button>';
+      btns = `<button class="btn" data-act="to-parent">${L('⬅️ Volver a la zona de padres', '⬅️ Back to the parents\' area')}</button>`;
     } else {
-      btns = (MG.DEFS[kidOf(pid)].length ? '<button class="btn" data-act="mg-choose">🎮 Jugar un minijuego</button>' : '')
-        + (p.pending > 0 ? '<button class="btn alt" data-act="gift">🎁 Abrir otro regalo</button>' : '')
-        + '<button class="btn alt" data-act="wardrobe">👕 Mi armario</button><button class="btn alt" data-act="back-map">🗺️ Volver al mapa</button>';
+      btns = (MG.DEFS[kidOf(pid)].length ? `<button class="btn" data-act="mg-choose">${L('🎮 Jugar un minijuego', '🎮 Play a mini-game')}</button>` : '')
+        + (p.pending > 0 ? `<button class="btn alt" data-act="gift">${L('🎁 Abrir otro regalo', '🎁 Open another gift')}</button>` : '')
+        + `<button class="btn alt" data-act="wardrobe">${L('👕 Mi armario', '👕 My wardrobe')}</button><button class="btn alt" data-act="back-map">${L('🗺️ Volver al mapa', '🗺️ Back to the map')}</button>`;
     }
-    $app.innerHTML = `${header('🎁 ¡Regalo!', test ? 'to-parent' : 'back-map')}<div class="card gift reveal">${mascotHTML(pid, 'idle happy', null, wornShow)}${acc ? `<div class="accico">${acc.icon}</div>` : ''}<h1>${title}</h1>${test ? '<p class="tiny">Modo prueba: no se guarda</p>' : ''}<div class="btns">${btns}</div></div>`;
+    $app.innerHTML = `${header(L('🎁 ¡Regalo!', '🎁 A gift!'), test ? 'to-parent' : 'back-map')}<div class="card gift reveal">${mascotHTML(pid, 'idle happy', null, wornShow)}${acc ? `<div class="accico">${acc.icon}</div>` : ''}<h1>${title}</h1>${test ? `<p class="tiny">${L('Modo prueba: no se guarda', 'Test mode: nothing is saved')}</p>` : ''}<div class="btns">${btns}</div></div>`;
     window.scrollTo(0, 0);
     fx.win();
     rain(['⭐', '🎉', '✨', acc ? acc.icon : '🌟']);
-    setTimeout(() => speak(acc ? '¡Mira! ¡Has ganado ' + acc.name + '!' : '¡Superpremio!'), 400);
+    setTimeout(() => speak(acc ? L('¡Mira! ¡Has ganado ' + itemName(acc) + '!', 'Look! You won: ' + itemName(acc) + '!') : L('¡Superpremio!', 'Super prize!')), 400);
   }
 
   function renderWardrobe(pid) {
@@ -1458,12 +1498,12 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       const cells = its.map((a) => {
         if (!p.accs.includes(a.id)) return '<div class="acc locked"><span>🔒</span><small>???</small></div>';
         const on = p.worn[sec.id] === a.id;
-        return `<button class="acc ${on ? 'on' : ''}" data-act="wear" data-a="${a.id}"><span>${a.icon}</span><small>${esc(a.name)}</small></button>`;
+        return `<button class="acc ${on ? 'on' : ''}" data-act="wear" data-a="${a.id}"><span>${a.icon}</span><small>${esc(itemName(a))}</small></button>`;
       }).join('');
       const have = its.filter((a) => p.accs.includes(a.id)).length;
-      return `<div class="secbox"><h3>${sec.icon} ${sec.name} <small>${have}/${its.length}</small></h3><div class="accs">${cells}</div></div>`;
+      return `<div class="secbox"><h3>${sec.icon} ${secName(sec)} <small>${have}/${its.length}</small></h3><div class="accs">${cells}</div></div>`;
     }).join('');
-    $app.innerHTML = `${header('Mi armario', 'back-map')}<div class="card wardrobe">${mascotHTML(pid, 'idle')}<p class="tiny">Tienes ${p.accs.length} de ${ITEMS.length} prendas. ¡Gana más abriendo regalos! Toca una prenda para ponértela o quitártela.</p></div>${sections}`;
+    $app.innerHTML = `${header(L('Mi armario', 'My wardrobe'), 'back-map')}<div class="card wardrobe">${mascotHTML(pid, 'idle')}<p class="tiny">${L(`Tienes ${p.accs.length} de ${ITEMS.length} prendas. ¡Gana más abriendo regalos! Toca una prenda para ponértela o quitártela.`, `You have ${p.accs.length} of ${ITEMS.length} items. Win more by opening gifts! Tap an item to put it on or take it off.`)}</p></div>${sections}`;
   }
 
   /* ---------- Minijuegos ---------- */
@@ -1476,8 +1516,8 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     cur.pid = pid;
     setTheme(pid);
     const defs = MG.DEFS[kidOf(pid)];
-    $app.innerHTML = `${header('🎮 Elige un minijuego', 'back-map')}<div class="mgchoose">${defs.map((d) => `<button class="mgcard" data-act="mg-pick" data-id="${d.id}"><span class="ico">${d.icon}</span><b>${esc(d.title)}</b><small>${esc(d.how)}</small></button>`).join('')}</div><p class="tiny">Dura 1 minuto</p>`;
-    setTimeout(() => speak('Elige un minijuego'), 250);
+    $app.innerHTML = `${header(L('🎮 Elige un minijuego', '🎮 Choose a mini-game'), 'back-map')}<div class="mgchoose">${defs.map((d) => `<button class="mgcard" data-act="mg-pick" data-id="${d.id}"><span class="ico">${d.icon}</span><b>${esc(d.title)}</b><small>${esc(d.how)}</small></button>`).join('')}</div><p class="tiny">${L('Dura 1 minuto', 'Lasts 1 minute')}</p>`;
+    setTimeout(() => speak(L('Elige un minijuego', 'Choose a mini-game')), 250);
   }
 
   function startMinigame(pid, id, opts) {
@@ -1487,7 +1527,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     setTheme(pid);
     const total = MG_OVERRIDE || def.seconds || 60;
     mg = { pid, def, test: !!opts.test, reward: !!opts.reward, score: 0, total, left: total, running: false, game: null };
-    $app.innerHTML = `${header(`${def.icon} ${esc(def.title)}${mg.test ? ' 🧪' : ''}`, 'mg-exit')}<div class="mgbar"><span id="mgtime">⏱ ${total}</span><span id="mgscore">${def.noScore ? '🎨' : '⭐ 0'}</span></div><div class="mgwrap"><canvas id="mgc" width="${MG.W}" height="${MG.H}"></canvas><div class="mgover" id="mgover"><div class="card"><h2>${def.icon} ${esc(def.title)}</h2><p>${esc(def.how)}</p><div class="btns"><button class="btn" data-act="mg-go">▶ ¡Jugar!</button></div></div></div></div><div id="mgtools"></div>`;
+    $app.innerHTML = `${header(`${def.icon} ${esc(def.title)}${mg.test ? ' 🧪' : ''}`, 'mg-exit')}<div class="mgbar"><span id="mgtime">⏱ ${total}</span><span id="mgscore">${def.noScore ? '🎨' : '⭐ 0'}</span></div><div class="mgwrap"><canvas id="mgc" width="${MG.W}" height="${MG.H}"></canvas><div class="mgover" id="mgover"><div class="card"><h2>${def.icon} ${esc(def.title)}</h2><p>${esc(def.how)}</p><div class="btns"><button class="btn" data-act="mg-go">${L('▶ ¡Jugar!', '▶ Play!')}</button></div></div></div></div><div id="mgtools"></div>`;
     window.scrollTo(0, 0);
     setTimeout(() => speak(def.how), 250);
   }
@@ -1558,15 +1598,15 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     }
     const over = document.getElementById('mgover');
     if (!over) return;
-    const msg = me.def.noScore ? '¡Qué dibujo tan bonito!' : `Has conseguido <b>${me.score}</b> ⭐`;
+    const msg = me.def.noScore ? L('¡Qué dibujo tan bonito!', 'What a lovely drawing!') : L(`Has conseguido <b>${me.score}</b> ⭐`, `You scored <b>${me.score}</b> ⭐`);
     let btns;
-    if (me.test) btns = '<button class="btn" data-act="mg-again">🔁 Jugar otra vez</button><button class="btn alt" data-act="mg-exit">⬅️ Volver a la zona de padres</button>';
-    else btns = (p.mg > 0 ? '<button class="btn" data-act="mg-choose">🎮 Otro minijuego</button>' : '') + '<button class="btn alt" data-act="mg-exit">🗺️ Volver al mapa</button>';
+    if (me.test) btns = `<button class="btn" data-act="mg-again">${L('🔁 Jugar otra vez', '🔁 Play again')}</button><button class="btn alt" data-act="mg-exit">${L('⬅️ Volver a la zona de padres', '⬅️ Back to the parents\' area')}</button>`;
+    else btns = (p.mg > 0 ? `<button class="btn" data-act="mg-choose">${L('🎮 Otro minijuego', '🎮 Another mini-game')}</button>` : '') + `<button class="btn alt" data-act="mg-exit">${L('🗺️ Volver al mapa', '🗺️ Back to the map')}</button>`;
     over.style.display = 'flex';
-    over.innerHTML = `<div class="card"><h2>⏰ ¡Tiempo!</h2><p class="msg">${msg}${record ? '<br>🏆 ¡Nuevo récord!' : ''}</p><div class="btns">${btns}</div></div>`;
+    over.innerHTML = `<div class="card"><h2>${L('⏰ ¡Tiempo!', '⏰ Time\'s up!')}</h2><p class="msg">${msg}${record ? `<br>${L('🏆 ¡Nuevo récord!', '🏆 New record!')}` : ''}</p><div class="btns">${btns}</div></div>`;
     fx.win();
     rain(['⭐', '✨', '🎉']);
-    setTimeout(() => speak(me.def.noScore ? '¡Qué dibujo tan bonito!' : `¡Tiempo! Has conseguido ${me.score}`), 300);
+    setTimeout(() => speak(me.def.noScore ? L('¡Qué dibujo tan bonito!', 'What a lovely drawing!') : L(`¡Tiempo! Has conseguido ${me.score}`, `Time's up! You scored ${me.score}`)), 300);
   }
 
   function exitMinigame() {
@@ -1582,12 +1622,12 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     const a = Games.rnd(3, 9);
     const b = Games.rnd(3, 9);
     gateAnswer = a * b;
-    $app.innerHTML = `${header('Zona de padres', 'back-home')}<div class="card gate parent"><p>Para entrar, resuelve esta cuenta:</p><h2 style="margin-top:10px;font-size:32px">${a} × ${b} = ?</h2><input type="number" inputmode="numeric" id="gate-in" autocomplete="off"><div class="btns"><button class="btn" data-act="gate-go">Entrar</button></div><p class="note" id="gate-msg"></p></div>`;
+    $app.innerHTML = `${header(L('Zona de padres', 'Parents\' area'), 'back-home')}<div class="card gate parent"><p>${L('Para entrar, resuelve esta cuenta:', 'To enter, solve this sum:')}</p><h2 style="margin-top:10px;font-size:32px">${a} × ${b} = ?</h2><input type="number" inputmode="numeric" id="gate-in" autocomplete="off"><div class="btns"><button class="btn" data-act="gate-go">${L('Entrar', 'Enter')}</button></div><p class="note" id="gate-msg"></p></div>`;
   }
 
   function weekRow(pid) {
     const out = [];
-    const names = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+    const names = L(['D', 'L', 'M', 'X', 'J', 'V', 'S'], ['S', 'M', 'T', 'W', 'T', 'F', 'S']);
     for (let k = 6; k >= 0; k--) {
       const d = new Date();
       d.setDate(d.getDate() - k);
@@ -1604,12 +1644,12 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       const tot = sk[t].ok + sk[t].err;
       return { t, tot, pct: Math.round((sk[t].ok / tot) * 100) };
     }).sort((a, b) => a.pct - b.pct);
-    if (!rows.length) return '<p class="note">Todavía no hay datos. Aparecerán cuando jueguen.</p>';
+    if (!rows.length) return `<p class="note">${L('Todavía no hay datos. Aparecerán cuando jueguen.', 'No data yet. It will appear once they play.')}</p>`;
     const weak = rows.filter((r) => r.tot >= 4 && r.pct < 70).slice(0, 3);
     let html = weak.length
-      ? `<div class="warn">📌 <b>Conviene repasar:</b> ${weak.map((r) => esc(Games.SKILL_NAMES[r.t] || r.t)).join(', ')}</div>`
-      : '<p class="note">De momento no hay ninguna habilidad con muchos fallos. ¡Bien!</p>';
-    html += rows.map((r) => `<div class="skill">${esc(Games.SKILL_NAMES[r.t] || r.t)} <small>(${r.pct}% a la primera · ${r.tot} intentos)</small><div class="bar"><i class="${r.pct < 50 ? 'low' : r.pct < 75 ? 'mid' : ''}" style="width:${r.pct}%"></i></div></div>`).join('');
+      ? `<div class="warn">📌 <b>${L('Conviene repasar:', 'Worth practising:')}</b> ${weak.map((r) => esc(Games.SKILL_NAMES[r.t] || r.t)).join(', ')}</div>`
+      : `<p class="note">${L('De momento no hay ninguna habilidad con muchos fallos. ¡Bien!', 'No skill has many mistakes so far. Well done!')}</p>`;
+    html += rows.map((r) => `<div class="skill">${esc(Games.SKILL_NAMES[r.t] || r.t)} <small>(${r.pct}% ${L('a la primera', 'first time')} · ${r.tot} ${L('intentos', 'attempts')})</small><div class="bar"><i class="${r.pct < 50 ? 'low' : r.pct < 75 ? 'mid' : ''}" style="width:${r.pct}%"></i></div></div>`).join('');
     return html;
   }
 
@@ -1626,42 +1666,43 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       const total = missionsOf(id).length;
       const lim = p.limit;
       return `<div class="card"><h2>${pr.emoji} ${esc(p.name)} <small>(${pr.world})</small></h2>
-        <label>Nombre</label><input type="text" maxlength="14" value="${esc(p.name)}" data-act="p-name" data-id="${id}">
-        <p class="stat">✅ Misiones completadas: <b>${doneCount(id)}/${total}</b> · ⭐ ${totalStars(id)}</p>
-        <p class="stat">📅 Hoy: <b>${playedToday(id)}</b> ${lim ? `de ${allowedToday(id)}` : '(sin límite)'}</p>
-        <p class="stat">Últimos 7 días (misiones por día):</p>${weekRow(id)}
-        <h3 style="margin-top:14px">Cómo van las habilidades</h3>${skillsBlock(id)}
-        <label>🧪 Probar cualquier misión (no se guarda nada)</label>
+        <label>${L('Nombre', 'Name')}</label><input type="text" maxlength="14" value="${esc(p.name)}" data-act="p-name" data-id="${id}">
+        <p class="stat">${L('✅ Misiones completadas:', '✅ Missions completed:')} <b>${doneCount(id)}/${total}</b> · ⭐ ${totalStars(id)}</p>
+        <p class="stat">${L('📅 Hoy:', '📅 Today:')} <b>${playedToday(id)}</b> ${lim ? `${L('de', 'of')} ${allowedToday(id)}` : L('(sin límite)', '(no limit)')}</p>
+        <p class="stat">${L('Últimos 7 días (misiones por día):', 'Last 7 days (missions per day):')}</p>${weekRow(id)}
+        <h3 style="margin-top:14px">${L('Cómo van las habilidades', 'How the skills are going')}</h3>${skillsBlock(id)}
+        <label>${L('🧪 Probar cualquier misión (no se guarda nada)', '🧪 Try any mission (nothing is saved)')}</label>
         <select id="test-${id}">${missionsOf(id).map((m, k) => `<option value="${k}">${k + 1}. ${esc(m.title)}</option>`).join('')}</select>
-        <div class="row"><button class="btn small" data-act="p-test" data-id="${id}">▶ Probar esta misión</button></div>
-        <label>🎮 Probar un minijuego o un regalo</label>
+        <div class="row"><button class="btn small" data-act="p-test" data-id="${id}">${L('▶ Probar esta misión', '▶ Try this mission')}</button></div>
+        <label>${L('🎮 Probar un minijuego o un regalo', '🎮 Try a mini-game or a gift')}</label>
         <select id="testmg-${id}">${MG.DEFS[kidOf(id)].map((d) => `<option value="${d.id}">${d.icon} ${esc(d.title)}</option>`).join('')}</select>
-        <div class="row"><button class="btn small" data-act="p-minigame" data-id="${id}">▶ Jugar minijuego</button><button class="btn small alt" data-act="p-gift-test" data-id="${id}">🎁 Probar un regalo</button></div>
-        ${id !== kidOf(id) ? '<p class="note">El límite diario se comparte entre los mundos de este niño (se cambia en el primer mundo).</p>' : `<label>Misiones por día (entre todos sus mundos)</label>
-        <select data-act="p-limit" data-id="${id}">${[[3, '3'], [5, '5'], [8, '8'], [10, '10'], [15, '15'], [20, '20'], [0, 'Sin límite']].map(([v, l]) => `<option value="${v}" ${lim === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
-        <div class="row"><button class="btn small alt" data-act="p-extra" data-id="${id}">➕ Una misión más hoy</button></div>`}
+        <div class="row"><button class="btn small" data-act="p-minigame" data-id="${id}">${L('▶ Jugar minijuego', '▶ Play mini-game')}</button><button class="btn small alt" data-act="p-gift-test" data-id="${id}">${L('🎁 Probar un regalo', '🎁 Try a gift')}</button></div>
+        ${id !== kidOf(id) ? `<p class="note">${L('El límite diario se comparte entre los mundos de este niño (se cambia en el primer mundo).', 'The daily limit is shared between this child\'s worlds (change it in the first world).')}</p>` : `<label>${L('Misiones por día (entre todos sus mundos)', 'Missions per day (across all their worlds)')}</label>
+        <select data-act="p-limit" data-id="${id}">${[[3, '3'], [5, '5'], [8, '8'], [10, '10'], [15, '15'], [20, '20'], [0, L('Sin límite', 'No limit')]].map(([v, l]) => `<option value="${v}" ${lim === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        <div class="row"><button class="btn small alt" data-act="p-extra" data-id="${id}">${L('➕ Una misión más hoy', '➕ One more mission today')}</button></div>`}
         <div class="row">
-        <button class="btn small alt" data-act="p-unlock" data-id="${id}">${p.unlockAll ? '🔒 Volver al orden normal' : '🔓 Desbloquear todas'}</button>
-        <button class="btn small danger" data-act="p-reset" data-id="${id}">🗑️ Borrar progreso</button></div></div>`;
+        <button class="btn small alt" data-act="p-unlock" data-id="${id}">${p.unlockAll ? L('🔒 Volver al orden normal', '🔒 Back to the normal order') : L('🔓 Desbloquear todas', '🔓 Unlock all')}</button>
+        <button class="btn small danger" data-act="p-reset" data-id="${id}">${L('🗑️ Borrar progreso', '🗑️ Delete progress')}</button></div></div>`;
     }).join('');
     let code = '';
     try { code = btoa(unescape(encodeURIComponent(JSON.stringify(S)))); } catch (e) { code = ''; }
-    $app.innerHTML = `${header('Zona de padres', 'back-home')}<div class="parent">${sections}
-      <div class="card"><h2>💾 Copia de seguridad</h2>
-        <p class="note">El progreso se guarda solo en este dispositivo. Para pasarlo a otro (o por si se borran los datos), copia este código y pégalo en el otro dispositivo.</p>
-        <label>Tu código</label><textarea readonly id="bk-out">${code}</textarea>
-        <div class="row"><button class="btn small" data-act="p-copy">📋 Copiar código</button></div>
-        <label>Restaurar desde un código</label><textarea id="bk-in" placeholder="Pega aquí el código"></textarea>
-        <div class="row"><button class="btn small alt" data-act="p-restore">♻️ Restaurar</button></div></div>
-      <div class="card"><h2>⚙️ Otros ajustes</h2>
-        <div class="row"><button class="btn small alt" data-act="p-worlds">${S.settings.worldsOpen ? '🌍 Mundos: todos abiertos' : '🌍 Mundos: se abren jugando (pulsa para abrir todos)'}</button></div>
-        <label>🎁 Regalo cada cuántas misiones</label><select data-act="p-reward">${[[3, '3'], [5, '5'], [8, '8'], [0, 'Sin regalos']].map(([v, l]) => `<option value="${v}" ${S.settings.rewardEvery === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
-        <label>Voz</label><select data-act="p-voice"><option value="">Automática (la más natural)</option>${vs.map((v) => `<option value="${esc(v.name)}" ${S.settings.voice === v.name ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>
-        <label>Velocidad de la voz</label><select data-act="p-rate">${[[0.8, 'Lenta'], [0.92, 'Normal'], [1.05, 'Rápida']].map(([v, l]) => `<option value="${v}" ${Math.abs((S.settings.rate || 0.92) - v) < 0.01 ? 'selected' : ''}>${l}</option>`).join('')}</select>
-        <div class="row"><button class="btn small" data-act="p-voice-test">▶ Probar voz</button></div>
-        <p class="note">${vs.length ? 'Voz que se usa ahora: <b>' + esc((bestVoice() || {}).name || 'ninguna') + '</b>' : 'Este dispositivo no tiene voces en español instaladas.'}</p>
-        <div class="row"><button class="btn small alt" data-act="p-sound">${S.settings.sound ? '🔊 Sonido y voz: activado' : '🔇 Sonido y voz: desactivado'}</button></div>
-        ${standalone ? '<p class="note">✅ Estás usando la app instalada.</p>' : (isIOS ? '<div class="warn">📱 En iPhone: abre esta web en <b>Safari</b>, pulsa el botón Compartir y elige <b>"Añadir a pantalla de inicio"</b>. Así se queda instalada y el progreso no se borra por falta de uso.</div>' : '<p class="note">💻 En Windows (Edge o Chrome) puedes instalarla desde el icono de instalar de la barra de direcciones.</p>')}
+    $app.innerHTML = `${header(L('Zona de padres', 'Parents\' area'), 'back-home')}<div class="parent">${sections}
+      <div class="card"><h2>${L('💾 Copia de seguridad', '💾 Backup')}</h2>
+        <p class="note">${L('El progreso se guarda solo en este dispositivo. Para pasarlo a otro (o por si se borran los datos), copia este código y pégalo en el otro dispositivo.', 'Progress is only saved on this device. To move it to another one (or in case the data gets deleted), copy this code and paste it on the other device.')}</p>
+        <label>${L('Tu código', 'Your code')}</label><textarea readonly id="bk-out">${code}</textarea>
+        <div class="row"><button class="btn small" data-act="p-copy">${L('📋 Copiar código', '📋 Copy code')}</button></div>
+        <label>${L('Restaurar desde un código', 'Restore from a code')}</label><textarea id="bk-in" placeholder="${L('Pega aquí el código', 'Paste the code here')}"></textarea>
+        <div class="row"><button class="btn small alt" data-act="p-restore">${L('♻️ Restaurar', '♻️ Restore')}</button></div></div>
+      <div class="card"><h2>${L('⚙️ Otros ajustes', '⚙️ Other settings')}</h2>
+        <label>🌐 ${L('Idioma', 'Language')}</label><select data-act="p-lang"><option value="es" ${L('selected', '')}>Español</option><option value="en" ${L('', 'selected')}>English</option></select>
+        <div class="row"><button class="btn small alt" data-act="p-worlds">${S.settings.worldsOpen ? L('🌍 Mundos: todos abiertos', '🌍 Worlds: all open') : L('🌍 Mundos: se abren jugando (pulsa para abrir todos)', '🌍 Worlds: they open as you play (tap to open all)')}</button></div>
+        <label>${L('🎁 Regalo cada cuántas misiones', '🎁 Gift every how many missions')}</label><select data-act="p-reward">${[[3, '3'], [5, '5'], [8, '8'], [0, L('Sin regalos', 'No gifts')]].map(([v, l]) => `<option value="${v}" ${S.settings.rewardEvery === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        <label>${L('Voz', 'Voice')}</label><select data-act="p-voice"><option value="">${L('Automática (la más natural)', 'Automatic (the most natural)')}</option>${vs.map((v) => `<option value="${esc(v.name)}" ${S.settings.voice === v.name ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>
+        <label>${L('Velocidad de la voz', 'Voice speed')}</label><select data-act="p-rate">${[[0.8, L('Lenta', 'Slow')], [0.92, 'Normal'], [1.05, L('Rápida', 'Fast')]].map(([v, l]) => `<option value="${v}" ${Math.abs((S.settings.rate || 0.92) - v) < 0.01 ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        <div class="row"><button class="btn small" data-act="p-voice-test">${L('▶ Probar voz', '▶ Try the voice')}</button></div>
+        <p class="note">${vs.length ? L('Voz que se usa ahora: <b>', 'Voice in use now: <b>') + esc((bestVoice() || {}).name || L('ninguna', 'none')) + '</b>' : L('Este dispositivo no tiene voces en español instaladas.', 'This device has no English voices installed.')}</p>
+        <div class="row"><button class="btn small alt" data-act="p-sound">${S.settings.sound ? L('🔊 Sonido y voz: activado', '🔊 Sound and voice: on') : L('🔇 Sonido y voz: desactivado', '🔇 Sound and voice: off')}</button></div>
+        ${standalone ? `<p class="note">${L('✅ Estás usando la app instalada.', '✅ You are using the installed app.')}</p>` : (isIOS ? `<div class="warn">${L('📱 En iPhone: abre esta web en <b>Safari</b>, pulsa el botón Compartir y elige <b>"Añadir a pantalla de inicio"</b>. Así se queda instalada y el progreso no se borra por falta de uso.', '📱 On iPhone: open this website in <b>Safari</b>, tap the Share button and choose <b>"Add to Home Screen"</b>. That way it stays installed and progress is not deleted from lack of use.')}</div>` : `<p class="note">${L('💻 En Windows (Edge o Chrome) puedes instalarla desde el icono de instalar de la barra de direcciones.', '💻 On Windows (Edge or Chrome) you can install it from the install icon in the address bar.')}</p>`)}
       </div></div>`;
     window.scrollTo(0, y);
   }
@@ -1675,6 +1716,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     switch (a) {
       case 'profile': fx.tap(); renderMap(id); break;
       case 'kid': openKid(id); break;
+      case 'lang': setLanguage(Games.getLang() === 'en' ? 'es' : 'en'); renderHome(); break;
       case 'p-worlds': S.settings.worldsOpen = !S.settings.worldsOpen; save(); renderParent(); break;
       case 'back-worlds': renderWorlds(kidOf(cur.pid)); break;
       case 'zone-prev': cur.zone = Math.max(0, cur.zone - 1); renderMap(cur.pid, true); break;
@@ -1690,7 +1732,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
         document.querySelectorAll('[data-act="sound"]').forEach((b) => { b.textContent = S.settings.sound ? '🔊' : '🔇'; });
         break;
       case 'speak': {
-        if (t.dataset.t === 'mem') speak('Encuentra las parejas de animales');
+        if (t.dataset.t === 'mem') speak(L('Encuentra las parejas de animales', 'Find the pairs of animals'));
         else if (run && run.question && run.question.type) speak(run.question.speak || run.question.prompt);
         else if (run && run.question) {
           const st = run.question.steps[run.step];
@@ -1721,7 +1763,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       case 'gate-go': {
         const v = parseInt(document.getElementById('gate-in').value, 10);
         if (v === gateAnswer) { parentOK = true; renderParent(); }
-        else { document.getElementById('gate-msg').textContent = 'No es correcto. Inténtalo de nuevo.'; }
+        else { document.getElementById('gate-msg').textContent = L('No es correcto. Inténtalo de nuevo.', 'That is not correct. Try again.'); }
         break;
       }
       case 'p-extra': {
@@ -1731,18 +1773,18 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       }
       case 'p-unlock': P(id).unlockAll = !P(id).unlockAll; save(); renderParent(); break;
       case 'p-reset':
-        if (window.confirm('¿Seguro que quieres borrar todo el progreso de ' + P(id).name + '? No se puede deshacer.')) {
+        if (window.confirm(L('¿Seguro que quieres borrar todo el progreso de ' + P(id).name + '? No se puede deshacer.', 'Are you sure you want to delete all of ' + P(id).name + '\'s progress? This cannot be undone.'))) {
           const keep = { name: P(id).name, limit: P(id).limit };
           S.profiles[id] = Object.assign(defaultProfile(id), keep);
           save(); renderParent();
         }
         break;
       case 'p-sound': S.settings.sound = !S.settings.sound; save(); renderParent(); break;
-      case 'p-voice-test': speak('¡Hola! Vamos a jugar con los animales y a cumplir misiones.'); break;
+      case 'p-voice-test': speak(L('¡Hola! Vamos a jugar con los animales y a cumplir misiones.', 'Hello! Let\'s play with the animals and complete missions.')); break;
       case 'p-copy': {
         const ta = document.getElementById('bk-out');
         ta.select();
-        const done = () => { t.textContent = '✅ Copiado'; };
+        const done = () => { t.textContent = L('✅ Copiado', '✅ Copied'); };
         if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(done, () => { document.execCommand('copy'); done(); });
         else { try { document.execCommand('copy'); } catch (err) { /* manual */ } done(); }
         break;
@@ -1752,11 +1794,11 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
         try {
           const data = JSON.parse(decodeURIComponent(escape(atob(raw))));
           if (!data || !data.profiles) throw new Error('formato');
-          if (window.confirm('Esto reemplazará el progreso actual de este dispositivo. ¿Continuar?')) {
+          if (window.confirm(L('Esto reemplazará el progreso actual de este dispositivo. ¿Continuar?', 'This will replace the current progress on this device. Continue?'))) {
             S = normalize(data); save(); renderParent();
-            alert('Progreso restaurado.');
+            alert(L('Progreso restaurado.', 'Progress restored.'));
           }
-        } catch (err) { alert('El código no es válido. Cópialo entero e inténtalo de nuevo.'); }
+        } catch (err) { alert(L('El código no es válido. Cópialo entero e inténtalo de nuevo.', 'The code is not valid. Copy all of it and try again.')); }
         break;
       }
       case 'gift': renderGift(cur.pid, false); break;
@@ -1795,17 +1837,18 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
   $app.addEventListener('change', (e) => {
     const t = e.target;
     if (t.dataset.act === 'p-limit') { P(t.dataset.id).limit = parseInt(t.value, 10); save(); renderParent(); }
+    if (t.dataset.act === 'p-lang') { setLanguage(t.value); renderParent(); return; }
     if (t.dataset.act === 'p-reward') { S.settings.rewardEvery = parseInt(t.value, 10); save(); renderParent(); }
     if (t.dataset.act === 'p-voice') {
       S.settings.voice = t.value;
       save();
       renderParent();
-      speak('¡Hola! Así suena esta voz.');
+      speak(L('¡Hola! Así suena esta voz.', 'Hello! This is how this voice sounds.'));
     }
     if (t.dataset.act === 'p-rate') {
       S.settings.rate = parseFloat(t.value);
       save();
-      speak('¡Hola! Así suena esta velocidad.');
+      speak(L('¡Hola! Así suena esta velocidad.', 'Hello! This is how this speed sounds.'));
     }
     if (t.dataset.act === 'p-name') {
       const v = t.value.trim().slice(0, 14);
