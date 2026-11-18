@@ -487,15 +487,17 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     return normalize({});
   }
   // Idioma: el guardado; si es la primera vez, el del navegador; si ya había datos sin idioma, español
+  const APP_TITLE = { es: 'Misión Aprende', en: 'Learning Mission', sk: 'Misia Učenie' };
+  const LANG_NAME = { es: 'Español', en: 'English', sk: 'Slovenčina' };
   (function initLang() {
     let l = '';
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) l = (JSON.parse(raw).settings || {}).lang || 'es';
-      else l = /^en/i.test(navigator.language || '') ? 'en' : 'es';
+      else l = /^en/i.test(navigator.language || '') ? 'en' : (/^sk/i.test(navigator.language || '') ? 'sk' : 'es');
     } catch (e) { l = 'es'; }
     Games.setLang(l);
-    try { document.documentElement.lang = l; document.title = l === 'en' ? 'Learning Mission' : 'Misión Aprende'; } catch (e) { /* nada */ }
+    try { document.documentElement.lang = l; document.title = APP_TITLE[l] || APP_TITLE.es; } catch (e) { /* nada */ }
   })();
   let S = load();
   function save() {
@@ -584,7 +586,11 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     if (/natural|neural|online/i.test(n)) s += 100;
     if (/premium|enhanced|mejorada|siri/i.test(n)) s += 80;
     if (/google/i.test(n)) s += 30;
-    if (Games.getLang() === 'en') {
+    const lg = Games.getLang();
+    if (lg === 'sk') {
+      if (/laura|filip|viktoria|lucia|female/i.test(n)) s += 20;
+      if (/^sk[-_]SK/i.test(v.lang)) s += 5;
+    } else if (lg === 'en') {
       if (/samantha|daniel|serena|karen|moira|tessa|fiona|oliver|kate|libby|sonia|maisie|hazel|susan|jenny|aria|ryan|george|zira|female/i.test(n)) s += 20;
       if (/^en[-_]GB/i.test(v.lang)) s += 8;
     } else {
@@ -593,7 +599,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     }
     return s;
   }
-  const langRe = () => (Games.getLang() === 'en' ? /^en/i : /^es/i);
+  const langRe = () => ({ en: /^en/i, sk: /^sk/i }[Games.getLang()] || /^es/i);
   const esVoices = () => voices.filter((x) => langRe().test(x.lang));
   function bestVoice() {
     if (S.settings.voice) {
@@ -605,11 +611,12 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
   function speak(text) {
     if (!S.settings.sound || !hasSpeech || !text) return;
     try {
-      const en = Games.getLang() === 'en';
-      const clean = String(text).replace(/−/g, en ? ' minus ' : ' menos ').replace(/×/g, en ? ' times ' : ' por ').replace(/\+/g, en ? ' plus ' : ' más ').replace(/=/g, en ? ' equals ' : ' igual a ');
+      const lg = Games.getLang();
+      const W = { es: [' menos ', ' por ', ' más ', ' igual a '], en: [' minus ', ' times ', ' plus ', ' equals '], sk: [' mínus ', ' krát ', ' plus ', ' sa rovná '] }[lg] || [' menos ', ' por ', ' más ', ' igual a '];
+      const clean = String(text).replace(/−/g, W[0]).replace(/×/g, W[1]).replace(/\+/g, W[2]).replace(/=/g, W[3]);
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(clean);
-      u.lang = Games.getLang() === 'en' ? 'en-GB' : 'es-ES';
+      u.lang = { en: 'en-GB', sk: 'sk-SK' }[Games.getLang()] || 'es-ES';
       u.rate = S.settings.rate || 0.92;
       u.pitch = 1.05;
       const v = bestVoice();
@@ -780,8 +787,10 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
   ITEMS.forEach((it) => { ITEM[it.id] = it; });
   const ITEM_EN = { corona: 'Crown', gorro: 'Party hat', mago: 'Wizard hat', gorra: 'Cap', flores: 'Flower crown', gafas: 'Sunglasses', redondas: 'Round glasses', antifaz: 'Hero mask', corazon: 'Heart glasses', bigote: 'Moustache', pajarita: 'Bow tie', bufanda: 'Scarf', medalla: 'Medal', collar: 'Flower necklace', corbata: 'Tie', capa: 'Red cape', capaazul: 'Blue cape', alashada: 'Fairy wings', alasmurci: 'Bat wings', mochila: 'Backpack' };
   const SEC_EN = { head: 'Head', face: 'Face', body: 'Body', back: 'Back' };
-  const itemName = (it) => L(it.name, ITEM_EN[it.id]);
-  const secName = (sec) => L(sec.name, SEC_EN[sec.id]);
+  const ITEM_SK = { corona: 'Koruna', gorro: 'Party čiapka', mago: 'Čarodejnícky klobúk', gorra: 'Šiltovka', flores: 'Veniec z kvetov', gafas: 'Slnečné okuliare', redondas: 'Okrúhle okuliare', antifaz: 'Hrdinská maska', corazon: 'Okuliare v tvare srdca', bigote: 'Fúzy', pajarita: 'Motýlik', bufanda: 'Šál', medalla: 'Medaila', collar: 'Kvetinový náhrdelník', corbata: 'Kravata', capa: 'Červený plášť', capaazul: 'Modrý plášť', alashada: 'Krídla víly', alasmurci: 'Netopierie krídla', mochila: 'Batoh' };
+  const SEC_SK = { head: 'Hlava', face: 'Tvár', body: 'Telo', back: 'Chrbát' };
+  const itemName = (it) => L(it.name, ITEM_EN[it.id], ITEM_SK[it.id]);
+  const secName = (sec) => L(sec.name, SEC_EN[sec.id], SEC_SK[sec.id]);
   const emptyWorn = () => ({ head: '', face: '', body: '', back: '' });
   const wornList = (worn) => (worn && !Array.isArray(worn) ? SECS.map((s) => worn[s.id]).filter(Boolean) : []);
   function itemSVG(id, fam) {
@@ -822,7 +831,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
 
   /* ---------- Cambio de idioma ---------- */
   function setLanguage(l) {
-    const old = Games.PROFILES.peque.defaultNames;
+    const old = null;
     Games.setLang(l);
     S.settings.lang = l;
     // Los nombres que eran los de por defecto pasan al idioma nuevo (los que escribió la familia se respetan)
@@ -830,7 +839,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       const pr = Games.PROFILES[id];
       if (pr.defaultNames.includes(P(id).name)) P(id).name = pr.defaultName;
     });
-    try { document.documentElement.lang = l; document.title = l === 'en' ? 'Learning Mission' : 'Misión Aprende'; } catch (e) { /* nada */ }
+    try { document.documentElement.lang = l; document.title = APP_TITLE[l] || APP_TITLE.es; } catch (e) { /* nada */ }
     stopSpeech();
     save();
     return old;
@@ -860,10 +869,10 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       const p = P(cur0);
       const rk = rank(cur0);
       const stars = ws.reduce((n, x) => n + totalStars(x), 0);
-      const sub = ws.length > 1 ? L(`${ws.length} mundos`, `${ws.length} worlds`) : pr.world;
+      const sub = ws.length > 1 ? L(`${ws.length} mundos`, `${ws.length} worlds`, `${ws.length} ${Games.C(ws.length, 'svet', 'svety', 'svetov')}`) : pr.world;
       return `<button class="profile ${kid}" data-act="kid" data-id="${kid}"><span class="em">${mascotHTML(cur0, 'idle')}</span><span><b>${esc(P(kid).name)}</b><span>${sub}</span><span>${rk.icon} ${rk.title} · ⭐ ${stars}</span></span></button>`;
     }).join('');
-    $app.innerHTML = `<div class="home">${header('', '')}<h1>${L('Misión Aprende', 'Learning Mission')}</h1><p class="sub">${L('¿Quién juega hoy?', 'Who is playing today?')}</p>${cards}<button class="parent-link" data-act="parent">${L('👨‍👩‍👧 Zona de padres', '👨‍👩‍👧 Parents\' area')}</button> <button class="parent-link" data-act="lang">🌐 ${L('English', 'Español')}</button></div>`;
+    $app.innerHTML = `<div class="home">${header('', '')}<h1>${L('Misión Aprende', 'Learning Mission')}</h1><p class="sub">${L('¿Quién juega hoy?', 'Who is playing today?')}</p>${cards}<button class="parent-link" data-act="parent">${L('👨‍👩‍👧 Zona de padres', '👨‍👩‍👧 Parents\' area')}</button> <div class="langrow" style="display:flex;gap:8px;justify-content:center;margin-top:10px">${['es', 'en', 'sk'].map((c) => `<button class="parent-link" data-act="lang" data-id="${c}" style="${c === Games.getLang() ? 'font-weight:800;text-decoration:underline' : ''}">${c === Games.getLang() ? '🌐 ' : ''}${LANG_NAME[c]}</button>`).join('')}</div></div>`;
   }
 
   function openKid(kid) {
@@ -881,7 +890,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       const total = missionsOf(id).length;
       if (!worldUnlocked(id)) {
         const prev = worldsOf(kid).find((x) => Games.PROFILES[x].w === pr.w - 1);
-        return `<div class="world locked"><span class="em">🔒</span><span><b>${esc(pr.world)}</b><span>${L(`Se abre al completar ${pr.unlockAfter} misiones del mundo anterior`, `Opens after completing ${pr.unlockAfter} missions in the previous world`)} (${doneCount(prev)}/${pr.unlockAfter})</span></span></div>`;
+        return `<div class="world locked"><span class="em">🔒</span><span><b>${esc(pr.world)}</b><span>${L(`Se abre al completar ${pr.unlockAfter} misiones del mundo anterior`, `Opens after completing ${pr.unlockAfter} missions in the previous world`, `Otvorí sa po splnení ${pr.unlockAfter} misií v predchádzajúcom svete`)} (${doneCount(prev)}/${pr.unlockAfter})</span></span></div>`;
       }
       const rk = rank(id);
       return `<button class="world ${id}" data-act="profile" data-id="${id}"><span class="em">${mascotHTML(id, 'idle')}</span><span><b>${esc(pr.world)}</b><span>${rk.icon} ${rk.title} · ⭐ ${totalStars(id)}</span><span>✅ ${doneCount(id)}/${total} ${L('misiones', 'missions')}</span></span></button>`;
@@ -902,12 +911,12 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     const every = S.settings.rewardEvery;
     if (!every) return '';
     const g = P(pid).gems || 0;
-    return `<div class="gems"><span>🎁</span>${Array.from({ length: every }, (_, k) => `<i class="${k < g ? 'on' : ''}"></i>`).join('')}<small>${L(`${every - g} para el regalo`, `${every - g} to go for the gift`)}</small></div>`;
+    return `<div class="gems"><span>🎁</span>${Array.from({ length: every }, (_, k) => `<i class="${k < g ? 'on' : ''}"></i>`).join('')}<small>${L(`${every - g} para el regalo`, `${every - g} to go for the gift`, `ešte ${every - g} do darčeka`)}</small></div>`;
   }
   function giftButtons(pid) {
     const p = P(pid);
     let h = '';
-    if (p.pending > 0) h += `<button class="btn giftbtn" data-act="gift">🎁 ${p.pending > 1 ? L(`¡Tienes ${p.pending} regalos para abrir!`, `You have ${p.pending} gifts to open!`) : L('¡Tienes un regalo para abrir!', 'You have a gift to open!')}</button>`;
+    if (p.pending > 0) h += `<button class="btn giftbtn" data-act="gift">🎁 ${p.pending > 1 ? L(`¡Tienes ${p.pending} regalos para abrir!`, `You have ${p.pending} gifts to open!`, `Máš ${p.pending} ${Games.C(p.pending, 'darček', 'darčeky', 'darčekov')} na otvorenie!`) : L('¡Tienes un regalo para abrir!', 'You have a gift to open!')}</button>`;
     if (p.mg > 0 && MG.DEFS[kidOf(pid)].length) h += `<button class="btn giftbtn mgbtn" data-act="mg-choose">🎮 ${L('¡Tienes un minijuego!', 'You have a mini-game!')}</button>`;
     return h;
   }
@@ -955,7 +964,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     $app.innerHTML = `${header(esc(pr.world), hasManyWorlds(kidOf(pid)) ? 'back-worlds' : 'back-home')}
       <div class="card"><div class="hero"><div class="avatar">${mascotHTML(pid, 'idle')}</div><div class="grow"><b>${esc(p.name)}</b><br>${rk.icon} ${rk.title}</div><div class="stars">⭐ ${totalStars(pid)}</div></div>
       <div class="today">${L('Hoy:', 'Today:')} ${dots || '∞'} ${allowed === Infinity ? '' : `<span>${Math.min(playedToday(pid), allowed)}/${allowed}</span>`}</div>${gemsHTML(pid)}</div>${giftButtons(pid)}
-      <div class="zonebar"><button class="zbtn" data-act="zone-prev" ${cur.zone <= 0 ? 'disabled' : ''} aria-label="${L('Zona anterior', 'Previous zone')}">◀</button><div class="zname"><b>${esc(zname)}</b><span>${L(`Zona ${cur.zone + 1} de ${zones}`, `Zone ${cur.zone + 1} of ${zones}`)} · ✅ ${zDone}/${zms.length}</span></div><button class="zbtn" data-act="zone-next" ${cur.zone >= zones - 1 ? 'disabled' : ''} aria-label="${L('Zona siguiente', 'Next zone')}">▶</button></div>
+      <div class="zonebar"><button class="zbtn" data-act="zone-prev" ${cur.zone <= 0 ? 'disabled' : ''} aria-label="${L('Zona anterior', 'Previous zone')}">◀</button><div class="zname"><b>${esc(zname)}</b><span>${L(`Zona ${cur.zone + 1} de ${zones}`, `Zone ${cur.zone + 1} of ${zones}`, `Zóna ${cur.zone + 1} z ${zones}`)} · ✅ ${zDone}/${zms.length}</span></div><button class="zbtn" data-act="zone-next" ${cur.zone >= zones - 1 ? 'disabled' : ''} aria-label="${L('Zona siguiente', 'Next zone')}">▶</button></div>
       <div class="islandmap z${cur.zone % 5}" id="island"><svg class="path" id="islpath" aria-hidden="true"></svg>${deco}${rows}<div class="map-mascot" id="mapmascot">${mascotHTML(pid, 'idle')}</div></div>
       <div class="row2"><button class="btn album-btn" data-act="album">${famOf(pid) === 'peque' ? L('📒 Pegatinas', '📒 Stickers') : L('🦴 Colección', '🦴 Collection')}</button><button class="btn album-btn" data-act="wardrobe">${L('👕 Mi armario', '👕 My wardrobe')}</button></div>`;
     requestAnimationFrame(drawMap);
@@ -996,13 +1005,13 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     const p = P(pid);
     const all = missionsOf(pid).map((m) => m.sticker);
     const items = all.map((s) => (p.stickers.includes(s) ? `<div>${s}</div>` : '<div class="locked">?</div>')).join('');
-    $app.innerHTML = `${header(famOf(pid) === 'peque' ? L('Mis pegatinas', 'My stickers') : L('Mi colección', 'My collection'), 'back-map')}<div class="card"><p>${L('Has conseguido', 'You have')} <b>${all.filter((s) => p.stickers.includes(s)).length}</b> ${L('de', 'of')} ${all.length}${L('. ¡Completa misiones para ganar más!', '. Complete missions to win more!')}</p></div><div class="album">${items}</div>`;
+    $app.innerHTML = `${header(famOf(pid) === 'peque' ? L('Mis pegatinas', 'My stickers') : L('Mi colección', 'My collection'), 'back-map')}<div class="card"><p>${L('Has conseguido', 'You have')} <b>${all.filter((s) => p.stickers.includes(s)).length}</b> ${L('de', 'of', 'zo')} ${all.length}${L('. ¡Completa misiones para ganar más!', '. Complete missions to win more!')}</p></div><div class="album">${items}</div>`;
   }
 
   function renderDoneToday(pid) {
     stopSpeech();
     const msg = L('¡Misión cumplida por hoy! Mañana te esperan más aventuras.', 'Missions done for today! More adventures are waiting tomorrow.');
-    $app.innerHTML = `${header('', 'back-map')}<div class="card result">${mascotHTML(pid, 'idle happy', null)}<h1>${L('¡Misión cumplida por hoy!', 'Missions done for today!')}</h1><p class="msg">${L(`Has hecho ${playedToday(pid)} misiones. Ahora toca descansar o jugar fuera. ¡Mañana hay más aventuras!`, `You have done ${playedToday(pid)} missions. Now it's time to rest or play outside. There are more adventures tomorrow!`)}</p><div class="btns"><button class="btn" data-act="back-home">${L('Volver al inicio', 'Back to the start')}</button></div></div>`;
+    $app.innerHTML = `${header('', 'back-map')}<div class="card result">${mascotHTML(pid, 'idle happy', null)}<h1>${L('¡Misión cumplida por hoy!', 'Missions done for today!')}</h1><p class="msg">${L(`Has hecho ${playedToday(pid)} misiones. Ahora toca descansar o jugar fuera. ¡Mañana hay más aventuras!`, `You have done ${playedToday(pid)} missions. Now it's time to rest or play outside. There are more adventures tomorrow!`, `Dnes máš ${Games.C(playedToday(pid), 'splnenú misiu', 'splnené misie', 'splnených misií')}: ${playedToday(pid)}. Teraz je čas oddýchnuť si alebo sa hrať vonku. Zajtra ťa čakajú ďalšie dobrodružstvá!`)}</p><div class="btns"><button class="btn" data-act="back-home">${L('Volver al inicio', 'Back to the start')}</button></div></div>`;
     rain(['⭐', '🌟', '✨']);
     setTimeout(() => speak(msg), 300);
   }
@@ -1329,7 +1338,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
   function startMemory() {
     const pairs = run.m.pairs;
     const an = Games.sample(Games.ANIMALS, pairs);
-    const cards = Games.shuffle(an.concat(an)).map((a, id) => ({ id, e: a.e, pl: a.pl, en: a.en, flipped: false, matched: false }));
+    const cards = Games.shuffle(an.concat(an)).map((a, id) => ({ id, e: a.e, pl: a.pl, en: a.en, sk: a.sk, flipped: false, matched: false }));
     run.mem = { cards, open: [], matched: 0, lock: false, pairs };
     run.units = pairs;
     const grid = cards.map((c, i) => `<button class="mcard" data-act="card" data-i="${i}" aria-label="${L('Carta', 'Card')}"><span class="inner"><span class="face front">❓</span><span class="face back">${c.e}</span></span></button>`).join('');
@@ -1363,7 +1372,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
           fx.ok();
           burst(ea);
           react('happy');
-          speak(L('¡Pareja de ' + ca.pl + '!', 'A pair of ' + (ca.en ? ca.en[1] : ca.pl) + '!'));
+          speak(L('¡Pareja de ' + ca.pl + '!', 'A pair of ' + (ca.en ? ca.en[1] : ca.pl) + '!', 'Pár: ' + (ca.sk ? ca.sk[0] : ca.pl) + '!'));
           if (mem.matched === mem.pairs) setTimeout(finish, 1400);
         } else {
           run.errs++;
@@ -1425,11 +1434,11 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       btns += `<button class="btn" data-act="back-map">${L('🌙 ¡Hasta mañana!', '🌙 See you tomorrow!')}</button>`;
     }
     const msg = left > 0 ? L('¡Buen trabajo! ¿Seguimos?', 'Good job! Shall we keep going?') : L('¡Misión cumplida por hoy! Mañana te esperan más aventuras.', 'Missions done for today! More adventures are waiting tomorrow.');
-    const giftLine = every ? (gotGift ? `<p class="msg">${L('🎁 ¡Has ganado un regalo!', '🎁 You won a gift!')}</p>` : `<p class="tiny">${L(`🎁 Te faltan ${every - p.gems} misiones para el regalo`, `🎁 ${every - p.gems} more missions to win a gift`)}</p>`) : '';
+    const giftLine = every ? (gotGift ? `<p class="msg">${L('🎁 ¡Has ganado un regalo!', '🎁 You won a gift!')}</p>` : `<p class="tiny">${L(`🎁 Te faltan ${every - p.gems} misiones para el regalo`, `🎁 ${every - p.gems} more missions to win a gift`, `🎁 Do darčeka ešte zostáva: ${every - p.gems} ${Games.C(every - p.gems, 'misia', 'misie', 'misií')}`)}</p>`) : '';
     const what = famOf(pid) === 'peque' ? L('pegatina', 'sticker') : L('tesoro', 'treasure');
     const nextW = worldsOf(kidOf(pid)).find((x) => Games.PROFILES[x].w === Games.PROFILES[pid].w + 1);
     const worldLine = nextW && Games.PROFILES[nextW].unlockAfter === doneCount(pid) && rec.done === 1 ? `<p class="msg">${L('🌍 ¡Se ha abierto un mundo nuevo: ', '🌍 A new world has opened: ')}${esc(Games.PROFILES[nextW].world)}!</p>` : '';
-    $app.innerHTML = `${header('', null)}<div class="card result">${mascotHTML(pid, 'idle happy')}<h1>${L('¡Misión completada!', 'Mission complete!')}</h1><div class="bigstars">${'⭐'.repeat(stars)}${'<span style="opacity:.25">⭐</span>'.repeat(3 - stars)}</div>${newSticker ? `<p>${L('Nuevo', 'New')} ${what}:</p><div class="sticker-new">${newSticker}</div>` : ''}${levelUp ? `<div class="level-up">${rankNow.icon} ${L('¡Subes de nivel: ', 'Level up: ')}${rankNow.title}!</div>` : ''}<p class="msg">${msg}</p>${giftLine}${worldLine}<div class="btns">${btns}</div></div>`;
+    $app.innerHTML = `${header('', null)}<div class="card result">${mascotHTML(pid, 'idle happy')}<h1>${L('¡Misión completada!', 'Mission complete!')}</h1><div class="bigstars">${'⭐'.repeat(stars)}${'<span style="opacity:.25">⭐</span>'.repeat(3 - stars)}</div>${newSticker ? `<p>${L('Nuevo', 'New', famOf(pid) === 'peque' ? 'Nová' : 'Nový')} ${what}:</p><div class="sticker-new">${newSticker}</div>` : ''}${levelUp ? `<div class="level-up">${rankNow.icon} ${L('¡Subes de nivel: ', 'Level up: ')}${rankNow.title}!</div>` : ''}<p class="msg">${msg}</p>${giftLine}${worldLine}<div class="btns">${btns}</div></div>`;
     window.scrollTo(0, 0);
     setTheme(pid);
     fx.win();
@@ -1475,7 +1484,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       save();
     }
     const wornShow = test ? Object.assign(emptyWorn(), acc ? { [acc.sec]: acc.id } : {}) : p.worn;
-    const title = acc ? L(`¡Nuevo: ${itemName(acc)}!`, `New: ${itemName(acc)}!`) : L('¡Superpremio! Ya tienes toda la ropa', 'Super prize! You have all the clothes');
+    const title = acc ? L(`¡Nuevo: ${itemName(acc)}!`, `New: ${itemName(acc)}!`, `Nové: ${itemName(acc)}!`) : L('¡Superpremio! Ya tienes toda la ropa', 'Super prize! You have all the clothes');
     let btns = '';
     if (test) {
       btns = `<button class="btn" data-act="to-parent">${L('⬅️ Volver a la zona de padres', '⬅️ Back to the parents\' area')}</button>`;
@@ -1488,7 +1497,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     window.scrollTo(0, 0);
     fx.win();
     rain(['⭐', '🎉', '✨', acc ? acc.icon : '🌟']);
-    setTimeout(() => speak(acc ? L('¡Mira! ¡Has ganado ' + itemName(acc) + '!', 'Look! You won: ' + itemName(acc) + '!') : L('¡Superpremio!', 'Super prize!')), 400);
+    setTimeout(() => speak(acc ? L('¡Mira! ¡Has ganado ' + itemName(acc) + '!', 'Look! You won: ' + itemName(acc) + '!', 'Pozri! Máš: ' + itemName(acc) + '!') : L('¡Superpremio!', 'Super prize!')), 400);
   }
 
   function renderWardrobe(pid) {
@@ -1503,7 +1512,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       const have = its.filter((a) => p.accs.includes(a.id)).length;
       return `<div class="secbox"><h3>${sec.icon} ${secName(sec)} <small>${have}/${its.length}</small></h3><div class="accs">${cells}</div></div>`;
     }).join('');
-    $app.innerHTML = `${header(L('Mi armario', 'My wardrobe'), 'back-map')}<div class="card wardrobe">${mascotHTML(pid, 'idle')}<p class="tiny">${L(`Tienes ${p.accs.length} de ${ITEMS.length} prendas. ¡Gana más abriendo regalos! Toca una prenda para ponértela o quitártela.`, `You have ${p.accs.length} of ${ITEMS.length} items. Win more by opening gifts! Tap an item to put it on or take it off.`)}</p></div>${sections}`;
+    $app.innerHTML = `${header(L('Mi armario', 'My wardrobe'), 'back-map')}<div class="card wardrobe">${mascotHTML(pid, 'idle')}<p class="tiny">${L(`Tienes ${p.accs.length} de ${ITEMS.length} prendas. ¡Gana más abriendo regalos! Toca una prenda para ponértela o quitártela.`, `You have ${p.accs.length} of ${ITEMS.length} items. Win more by opening gifts! Tap an item to put it on or take it off.`, `Máš ${p.accs.length} z ${ITEMS.length} kúskov oblečenia. Získaj ďalšie otváraním darčekov! Ťukni na kúsok oblečenia a nasadíš ho alebo odložíš.`)}</p></div>${sections}`;
   }
 
   /* ---------- Minijuegos ---------- */
@@ -1598,7 +1607,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     }
     const over = document.getElementById('mgover');
     if (!over) return;
-    const msg = me.def.noScore ? L('¡Qué dibujo tan bonito!', 'What a lovely drawing!') : L(`Has conseguido <b>${me.score}</b> ⭐`, `You scored <b>${me.score}</b> ⭐`);
+    const msg = me.def.noScore ? L('¡Qué dibujo tan bonito!', 'What a lovely drawing!') : L(`Has conseguido <b>${me.score}</b> ⭐`, `You scored <b>${me.score}</b> ⭐`, `Skóre: <b>${me.score}</b> ⭐`);
     let btns;
     if (me.test) btns = `<button class="btn" data-act="mg-again">${L('🔁 Jugar otra vez', '🔁 Play again')}</button><button class="btn alt" data-act="mg-exit">${L('⬅️ Volver a la zona de padres', '⬅️ Back to the parents\' area')}</button>`;
     else btns = (p.mg > 0 ? `<button class="btn" data-act="mg-choose">${L('🎮 Otro minijuego', '🎮 Another mini-game')}</button>` : '') + `<button class="btn alt" data-act="mg-exit">${L('🗺️ Volver al mapa', '🗺️ Back to the map')}</button>`;
@@ -1606,7 +1615,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     over.innerHTML = `<div class="card"><h2>${L('⏰ ¡Tiempo!', '⏰ Time\'s up!')}</h2><p class="msg">${msg}${record ? `<br>${L('🏆 ¡Nuevo récord!', '🏆 New record!')}` : ''}</p><div class="btns">${btns}</div></div>`;
     fx.win();
     rain(['⭐', '✨', '🎉']);
-    setTimeout(() => speak(me.def.noScore ? L('¡Qué dibujo tan bonito!', 'What a lovely drawing!') : L(`¡Tiempo! Has conseguido ${me.score}`, `Time's up! You scored ${me.score}`)), 300);
+    setTimeout(() => speak(me.def.noScore ? L('¡Qué dibujo tan bonito!', 'What a lovely drawing!') : L(`¡Tiempo! Has conseguido ${me.score}`, `Time's up! You scored ${me.score}`, `Čas vypršal! Skóre: ${me.score}`)), 300);
   }
 
   function exitMinigame() {
@@ -1627,7 +1636,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
 
   function weekRow(pid) {
     const out = [];
-    const names = L(['D', 'L', 'M', 'X', 'J', 'V', 'S'], ['S', 'M', 'T', 'W', 'T', 'F', 'S']);
+    const names = L(['D', 'L', 'M', 'X', 'J', 'V', 'S'], ['S', 'M', 'T', 'W', 'T', 'F', 'S'], ['N', 'P', 'U', 'S', 'Š', 'P', 'S']);
     for (let k = 6; k >= 0; k--) {
       const d = new Date();
       d.setDate(d.getDate() - k);
@@ -1694,11 +1703,11 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
         <label>${L('Restaurar desde un código', 'Restore from a code')}</label><textarea id="bk-in" placeholder="${L('Pega aquí el código', 'Paste the code here')}"></textarea>
         <div class="row"><button class="btn small alt" data-act="p-restore">${L('♻️ Restaurar', '♻️ Restore')}</button></div></div>
       <div class="card"><h2>${L('⚙️ Otros ajustes', '⚙️ Other settings')}</h2>
-        <label>🌐 ${L('Idioma', 'Language')}</label><select data-act="p-lang"><option value="es" ${L('selected', '')}>Español</option><option value="en" ${L('', 'selected')}>English</option></select>
+        <label>🌐 ${L('Idioma', 'Language')}</label><select data-act="p-lang">${['es', 'en', 'sk'].map((c) => `<option value="${c}" ${c === Games.getLang() ? 'selected' : ''}>${LANG_NAME[c]}</option>`).join('')}</select>
         <div class="row"><button class="btn small alt" data-act="p-worlds">${S.settings.worldsOpen ? L('🌍 Mundos: todos abiertos', '🌍 Worlds: all open') : L('🌍 Mundos: se abren jugando (pulsa para abrir todos)', '🌍 Worlds: they open as you play (tap to open all)')}</button></div>
         <label>${L('🎁 Regalo cada cuántas misiones', '🎁 Gift every how many missions')}</label><select data-act="p-reward">${[[3, '3'], [5, '5'], [8, '8'], [0, L('Sin regalos', 'No gifts')]].map(([v, l]) => `<option value="${v}" ${S.settings.rewardEvery === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
         <label>${L('Voz', 'Voice')}</label><select data-act="p-voice"><option value="">${L('Automática (la más natural)', 'Automatic (the most natural)')}</option>${vs.map((v) => `<option value="${esc(v.name)}" ${S.settings.voice === v.name ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>
-        <label>${L('Velocidad de la voz', 'Voice speed')}</label><select data-act="p-rate">${[[0.8, L('Lenta', 'Slow')], [0.92, 'Normal'], [1.05, L('Rápida', 'Fast')]].map(([v, l]) => `<option value="${v}" ${Math.abs((S.settings.rate || 0.92) - v) < 0.01 ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        <label>${L('Velocidad de la voz', 'Voice speed')}</label><select data-act="p-rate">${[[0.8, L('Lenta', 'Slow')], [0.92, L('Normal', 'Normal')], [1.05, L('Rápida', 'Fast')]].map(([v, l]) => `<option value="${v}" ${Math.abs((S.settings.rate || 0.92) - v) < 0.01 ? 'selected' : ''}>${l}</option>`).join('')}</select>
         <div class="row"><button class="btn small" data-act="p-voice-test">${L('▶ Probar voz', '▶ Try the voice')}</button></div>
         <p class="note">${vs.length ? L('Voz que se usa ahora: <b>', 'Voice in use now: <b>') + esc((bestVoice() || {}).name || L('ninguna', 'none')) + '</b>' : L('Este dispositivo no tiene voces en español instaladas.', 'This device has no English voices installed.')}</p>
         <div class="row"><button class="btn small alt" data-act="p-sound">${S.settings.sound ? L('🔊 Sonido y voz: activado', '🔊 Sound and voice: on') : L('🔇 Sonido y voz: desactivado', '🔇 Sound and voice: off')}</button></div>
@@ -1716,7 +1725,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
     switch (a) {
       case 'profile': fx.tap(); renderMap(id); break;
       case 'kid': openKid(id); break;
-      case 'lang': setLanguage(Games.getLang() === 'en' ? 'es' : 'en'); renderHome(); break;
+      case 'lang': setLanguage(id); renderHome(); break;
       case 'p-worlds': S.settings.worldsOpen = !S.settings.worldsOpen; save(); renderParent(); break;
       case 'back-worlds': renderWorlds(kidOf(cur.pid)); break;
       case 'zone-prev': cur.zone = Math.max(0, cur.zone - 1); renderMap(cur.pid, true); break;
@@ -1773,7 +1782,7 @@ body[data-theme="dragon"] { --bg: #ffe5df; --primary: #d9482f; --accent: #2b8cff
       }
       case 'p-unlock': P(id).unlockAll = !P(id).unlockAll; save(); renderParent(); break;
       case 'p-reset':
-        if (window.confirm(L('¿Seguro que quieres borrar todo el progreso de ' + P(id).name + '? No se puede deshacer.', 'Are you sure you want to delete all of ' + P(id).name + '\'s progress? This cannot be undone.'))) {
+        if (window.confirm(L('¿Seguro que quieres borrar todo el progreso de ' + P(id).name + '? No se puede deshacer.', 'Are you sure you want to delete all of ' + P(id).name + '\'s progress? This cannot be undone.', 'Naozaj chceš vymazať všetok pokrok hráča ' + P(id).name + '? Nedá sa to vrátiť späť.'))) {
           const keep = { name: P(id).name, limit: P(id).limit };
           S.profiles[id] = Object.assign(defaultProfile(id), keep);
           save(); renderParent();

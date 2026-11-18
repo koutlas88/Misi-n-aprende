@@ -14,45 +14,381 @@ const Games = (function () {
 
   /* ---------- Idioma: L(español, inglés) devuelve el texto del idioma activo ---------- */
   let LANG = 'es';
-  const L = (es, en) => (LANG === 'en' ? en : es);
+  // Diccionario inglés -> eslovaco para los textos fijos (se rellena abajo). Los textos con números llevan su 3.er argumento.
+  const SKD = {};
+  /*SKD_BEGIN*/
+  Object.assign(SKD, {
+ "Tap each animal to count it": "Ťukni na každé zviera a spočítaj ich",
+ " Tap each one to count them.": " Ťukaj na každé a počítaj.",
+ "Take each picture to its group": "Odnes každý obrázok do jeho skupiny",
+ "Fit each shape into its hole": "Zasuň každý tvar do jeho otvoru",
+ "Drag each shape into its hole": "Presuň každý tvar do jeho otvoru",
+ "Put them in order: BIGGEST to SMALLEST": "Zoraď ich: od NAJVÄČŠIEHO po NAJMENŠIE",
+ "Put them in order: SMALLEST to BIGGEST": "Zoraď ich: od NAJMENŠIEHO po NAJVÄČŠIE",
+ "Put the numbers in order from biggest to smallest": "Zoraď čísla od najväčšieho po najmenšie",
+ "Put the numbers in order from smallest to biggest": "Zoraď čísla od najmenšieho po najväčšie",
+ "Match each number with its group": "Spoj každé číslo s jeho skupinou",
+ "Match each number with the group that has that many": "Spoj každé číslo so skupinou, ktorá má taký počet",
+ "Match each animal with its shadow": "Spoj každé zviera s jeho tieňom",
+ "Match each sum with its answer": "Spoj každý príklad s jeho výsledkom",
+ "Match each times table with its answer": "Spoj každý príklad z násobilky s jeho výsledkom",
+ "Match each multiplication with its answer": "Spoj každé násobenie s jeho výsledkom",
+ "Which number is missing?": "Ktoré číslo chýba?",
+ "Which number is missing in the pattern?": "Ktoré číslo chýba v rade?",
+ "What time does the clock show?": "Aký čas ukazujú hodiny?",
+ "Putting things together or adding more = ADD ➕": "Spájať veci alebo pridávať ďalšie = SČÍTAŤ ➕",
+ "Taking things away or losing them = SUBTRACT ➖": "Brať veci preč alebo o ne prísť = ODČÍTAŤ ➖",
+ "Giving something to someone else = losing it = SUBTRACT ➖": "Dať niečo niekomu inému = prísť o to = ODČÍTAŤ ➖",
+ "\"Altogether\" or \"between them\" = putting it all together = ADD ➕": "„Spolu“ alebo „dokopy“ = dať všetko dokopy = SČÍTAŤ ➕",
+ "Equal groups = MULTIPLY ✖️": "Rovnaké skupiny = NÁSOBIŤ ✖️",
+ "plus": "plus",
+ "minus": "mínus",
+ "times": "krát",
+ "At the end, will there be MORE or FEWER?": "Bude ich na konci VIAC alebo MENEJ?",
+ "At the end, will there be more or fewer?": "Bude ich na konci viac alebo menej?",
+ "📈 MORE": "📈 VIAC",
+ "📉 FEWER": "📉 MENEJ",
+ "Things are added or put together, so at the end there are MORE.": "Veci sa pridávajú alebo spájajú, takže ich je na konci VIAC.",
+ "Things are taken away or go away, so at the end there are FEWER.": "Veci sa berú preč alebo miznú, takže ich je na konci MENEJ.",
+ "Which sum do we need to do?": "Aký príklad treba vypočítať?",
+ "BIGGER": "VÄČŠIE",
+ "SMALLER": "MENŠIE",
+ "Which number goes in the middle?": "Ktoré číslo patrí doprostred?",
+ "How much money is there altogether?": "Koľko peňazí je to spolu?",
+ "Which number is this?": "Ktoré číslo je toto?",
+ "MORE": "VIAC",
+ "FEWER": "MENEJ",
+ "What comes next?": "Čo nasleduje?",
+ "What comes next in the row?": "Čo nasleduje v rade?",
+ "The hidden number": "Skryté číslo",
+ "Adding three numbers": "Sčítanie troch čísel",
+ "Which is bigger or smaller?": "Ktoré je väčšie alebo menšie?",
+ "Doubles and halves": "Dvojnásobky a polovice",
+ "Tens and ones": "Desiatky a jednotky",
+ "Before, after and in between": "Pred, po a medzi",
+ "Coins and pounds": "Mince a eurá",
+ "Number patterns": "Číselné rady",
+ "Problems: more or fewer?": "Úlohy: viac alebo menej?",
+ "Problems: which sum?": "Úlohy: aký príklad?",
+ "Problems: giving and totals": "Úlohy: dávanie a súčty",
+ "Put the numbers in order": "Zoraď čísla",
+ "Match sums and answers": "Spoj príklady a výsledky",
+ "Adventure problems": "Dobrodružné úlohy",
+ "Expert clock": "Hodiny pre expertov",
+ "The clock": "Hodiny",
+ "Adding and subtracting": "Sčítanie a odčítanie",
+ "Mixed adding and subtracting": "Zmiešané sčítanie a odčítanie",
+ "The colours": "Farby",
+ "The shapes": "Tvary",
+ "Everything in its place": "Všetko na svojom mieste",
+ "Fit the shapes": "Zasuň tvary",
+ "Match the shadows": "Spoj tiene",
+ "Where are there more or fewer?": "Kde je viac alebo menej?",
+ "Follow the pattern": "Pokračuj vo vzore",
+ "Which number is it?": "Ktoré je to číslo?",
+ "Find the group": "Nájdi skupinu",
+ "Put them in the basket": "Daj ich do košíka",
+ "Put the fruit together": "Dáme ovocie dokopy",
+ "Match numbers and animals": "Spoj čísla a zvieratá",
+ "Animal pairs": "Zvieracie páry",
+ "Back": "Späť",
+ "Sound": "Zvuk",
+ "Learning Mission": "Misia Učenie",
+ "Who is playing today?": "Kto sa dnes hrá?",
+ "👨‍👩‍👧 Parents' area": "👨‍👩‍👧 Rodičovská zóna",
+ "missions": "misií",
+ "Choose your world": "Vyber si svet",
+ "You have a gift to open!": "Máš darček na otvorenie!",
+ "You have a mini-game!": "Máš minihru!",
+ "Today:": "Dnes:",
+ "Previous zone": "Predchádzajúca zóna",
+ "Next zone": "Ďalšia zóna",
+ "📒 Stickers": "📒 Nálepky",
+ "🦴 Collection": "🦴 Zbierka",
+ "👕 My wardrobe": "👕 Môj šatník",
+ "My stickers": "Moje nálepky",
+ "My collection": "Moja zbierka",
+ "You have": "Máš",
+ "of": "z",
+ ". Complete missions to win more!": ". Plň misie a získaj ďalšie!",
+ "Missions done for today! More adventures are waiting tomorrow.": "Dnešné misie sú hotové! Ďalšie dobrodružstvá čakajú zajtra.",
+ "Missions done for today!": "Dnešné misie sú hotové!",
+ "Back to the start": "Späť na začiatok",
+ "Listen": "Počúvaj",
+ "Almost! Try again.": "Skoro! Skús to znova.",
+ "the biggest ➜ the smallest": "od najväčšieho ➜ po najmenšie",
+ "the smallest ➜ the biggest": "od najmenšieho ➜ po najväčšie",
+ "Drag your finger from one dot to its partner": "Ťahaj prstom od jednej bodky k jej páru",
+ "That doesn't go there. Try the other group!": "Toto tam nepatrí. Skús druhú skupinu!",
+ "That shape doesn't fit there. Try another hole!": "Tento tvar tam nepasuje. Skús iný otvor!",
+ "That doesn't go there. Look for a bigger number.": "Toto tam nepatrí. Hľadaj väčšie číslo.",
+ "That doesn't go there. Look for a smaller number.": "Toto tam nepatrí. Hľadaj menšie číslo.",
+ "That's not its partner. Try again!": "To nie je jeho pár. Skús to znova!",
+ "Card": "Karta",
+ "Find the pairs": "Nájdi dvojice",
+ "Find the pairs of animals": "Nájdi dvojice zvierat",
+ "🧪 Mission tested": "🧪 Misia vyskúšaná",
+ "Test mode: no progress, stars or records were saved.": "Testovací režim: neuložil sa žiadny pokrok, hviezdy ani rekordy.",
+ "Try the next one ▶": "Skús ďalšiu ▶",
+ "🔁 Repeat this mission": "🔁 Zopakovať túto misiu",
+ "⬅️ Back to the parents' area": "⬅️ Späť do rodičovskej zóny",
+ "🎁 Open the gift!": "🎁 Otvor darček!",
+ "Next mission ▶": "Ďalšia misia ▶",
+ "🗺️ Back to the map": "🗺️ Späť na mapu",
+ "🌙 See you tomorrow!": "🌙 Do zajtra!",
+ "Good job! Shall we keep going?": "Dobrá práca! Pokračujeme?",
+ "🎁 You won a gift!": "🎁 Máš darček!",
+ "sticker": "nálepka",
+ "treasure": "poklad",
+ "🌍 A new world has opened: ": "🌍 Otvoril sa nový svet: ",
+ "Mission complete!": "Misia splnená!",
+ "New": "Nové",
+ "Level up: ": "Nová úroveň: ",
+ "You won a gift! Open it.": "Máš darček! Otvor ho.",
+ "🎁 A gift!": "🎁 Darček!",
+ "Tap the egg to open it!": "Ťukni na vajce a otvor ho!",
+ "Surprise egg": "Prekvapivé vajce",
+ "Tap 3 times": "Ťukni 3-krát",
+ "Super prize! You have all the clothes": "Super výhra! Máš všetky oblečenia",
+ "🎮 Play a mini-game": "🎮 Zahraj si minihru",
+ "🎁 Open another gift": "🎁 Otvoriť ďalší darček",
+ "Test mode: nothing is saved": "Testovací režim: nič sa neukladá",
+ "Super prize!": "Super výhra!",
+ "My wardrobe": "Môj šatník",
+ "🎮 Choose a mini-game": "🎮 Vyber si minihru",
+ "Lasts 1 minute": "Trvá 1 minútu",
+ "Choose a mini-game": "Vyber si minihru",
+ "▶ Play!": "▶ Hraj!",
+ "What a lovely drawing!": "Aký krásny obrázok!",
+ "🔁 Play again": "🔁 Hrať znova",
+ "🎮 Another mini-game": "🎮 Iná minihra",
+ "⏰ Time's up!": "⏰ Čas vypršal!",
+ "🏆 New record!": "🏆 Nový rekord!",
+ "Parents' area": "Rodičovská zóna",
+ "To enter, solve this sum:": "Pre vstup vyrieš tento príklad:",
+ "Enter": "Vstúpiť",
+ "No data yet. It will appear once they play.": "Zatiaľ nie sú žiadne údaje. Objavia sa, keď začnú hrať.",
+ "Worth practising:": "Treba precvičiť:",
+ "No skill has many mistakes so far. Well done!": "Zatiaľ nemá žiadna zručnosť veľa chýb. Výborne!",
+ "first time": "na prvý raz",
+ "attempts": "pokusov",
+ "Name": "Meno",
+ "✅ Missions completed:": "✅ Splnené misie:",
+ "📅 Today:": "📅 Dnes:",
+ "(no limit)": "(bez limitu)",
+ "Last 7 days (missions per day):": "Posledných 7 dní (misie za deň):",
+ "How the skills are going": "Ako sa darí zručnostiam",
+ "🧪 Try any mission (nothing is saved)": "🧪 Vyskúšať ľubovoľnú misiu (nič sa neukladá)",
+ "▶ Try this mission": "▶ Vyskúšať túto misiu",
+ "🎮 Try a mini-game or a gift": "🎮 Vyskúšať minihru alebo darček",
+ "▶ Play mini-game": "▶ Hrať minihru",
+ "🎁 Try a gift": "🎁 Vyskúšať darček",
+ "The daily limit is shared between this child's worlds (change it in the first world).": "Denný limit sa zdieľa medzi svetmi tohto dieťaťa (mení sa v prvom svete).",
+ "Missions per day (across all their worlds)": "Misie za deň (vo všetkých jeho svetoch)",
+ "No limit": "Bez limitu",
+ "➕ One more mission today": "➕ Ešte jedna misia dnes",
+ "🔒 Back to the normal order": "🔒 Späť na bežné poradie",
+ "🔓 Unlock all": "🔓 Odomknúť všetko",
+ "🗑️ Delete progress": "🗑️ Vymazať pokrok",
+ "💾 Backup": "💾 Záloha",
+ "Progress is only saved on this device. To move it to another one (or in case the data gets deleted), copy this code and paste it on the other device.": "Pokrok sa ukladá iba v tomto zariadení. Ak ho chceš preniesť do iného (alebo pre prípad, že sa údaje vymažú), skopíruj tento kód a vlož ho do druhého zariadenia.",
+ "Your code": "Tvoj kód",
+ "📋 Copy code": "📋 Kopírovať kód",
+ "Restore from a code": "Obnoviť z kódu",
+ "Paste the code here": "Sem vlož kód",
+ "♻️ Restore": "♻️ Obnoviť",
+ "⚙️ Other settings": "⚙️ Ostatné nastavenia",
+ "Language": "Jazyk",
+ "🌍 Worlds: all open": "🌍 Svety: všetky otvorené",
+ "🌍 Worlds: they open as you play (tap to open all)": "🌍 Svety: otvárajú sa hraním (ťukni a otvor všetky)",
+ "🎁 Gift every how many missions": "🎁 Darček po koľkých misiách",
+ "No gifts": "Bez darčekov",
+ "Voice": "Hlas",
+ "Automatic (the most natural)": "Automatický (najprirodzenejší)",
+ "Voice speed": "Rýchlosť hlasu",
+ "Slow": "Pomalá",
+ "Fast": "Rýchla",
+ "Normal": "Normálna",
+ "▶ Try the voice": "▶ Vyskúšať hlas",
+ "Voice in use now: <b>": "Hlas, ktorý sa teraz používa: <b>",
+ "none": "žiadny",
+ "This device has no English voices installed.": "Toto zariadenie nemá nainštalované slovenské hlasy.",
+ "🔊 Sound and voice: on": "🔊 Zvuk a hlas: zapnuté",
+ "🔇 Sound and voice: off": "🔇 Zvuk a hlas: vypnuté",
+ "✅ You are using the installed app.": "✅ Používaš nainštalovanú aplikáciu.",
+ "📱 On iPhone: open this website in <b>Safari</b>, tap the Share button and choose <b>\"Add to Home Screen\"</b>. That way it stays installed and progress is not deleted from lack of use.": "📱 Na iPhone: otvor túto stránku v <b>Safari</b>, ťukni na tlačidlo Zdieľať a vyber <b>„Pridať na plochu“</b>. Takto ostane nainštalovaná a pokrok sa nevymaže z nepoužívania.",
+ "💻 On Windows (Edge or Chrome) you can install it from the install icon in the address bar.": "💻 Vo Windows (Edge alebo Chrome) ju môžeš nainštalovať ikonou inštalácie v adresnom riadku.",
+ "That is not correct. Try again.": "To nie je správne. Skús to znova.",
+ "Hello! Let's play with the animals and complete missions.": "Ahoj! Poďme sa hrať so zvieratkami a plniť misie.",
+ "✅ Copied": "✅ Skopírované",
+ "This will replace the current progress on this device. Continue?": "Toto nahradí aktuálny pokrok v tomto zariadení. Pokračovať?",
+ "Progress restored.": "Pokrok bol obnovený.",
+ "The code is not valid. Copy all of it and try again.": "Kód nie je platný. Skopíruj ho celý a skús to znova.",
+ "Hello! This is how this voice sounds.": "Ahoj! Takto znie tento hlas.",
+ "Hello! This is how this speed sounds.": "Ahoj! Takto znie táto rýchlosť.",
+ "Flower Meadow": "Kvetinová lúka",
+ "Colourful Forest": "Farebný les",
+ "Crystal Lake": "Krištáľové jazero",
+ "Rainbow Hill": "Dúhový kopec",
+ "Butterfly Garden": "Motýlia záhrada",
+ "Cotton Cloud": "Bavlnený obláčik",
+ "Valley of Stars": "Údolie hviezd",
+ "Magic Waterfall": "Čarovný vodopád",
+ "Candy Castle": "Cukrový zámok",
+ "Unicorn Peak": "Jednorožčí štít",
+ "Big prize:": "Veľká výhra:",
+ "Boss:": "Šéf:",
+ "Little House Garden": "Záhrada pri domčeku",
+ "Leaf Forest": "Lesík z listov",
+ "Firefly Hill": "Kopec svetlušiek",
+ "Fish Pond": "Rybník",
+ "Yarn Farm": "Farma klbiek",
+ "Moonlit Rooftops": "Strechy v mesačnom svite",
+ "Starry Cave": "Hviezdna jaskyňa",
+ "Shell Beach": "Pláž s mušľami",
+ "Playground": "Ihrisko",
+ "Kitten Palace": "Mačací palác",
+ "Egg Beach": "Pláž vajec",
+ "Green Jungle": "Zelená džungľa",
+ "Bone Cave": "Jaskyňa kostí",
+ "Fern Valley": "Papraďové údolie",
+ "Bubbling Swamp": "Bublajúci močiar",
+ "Sleepy Volcano": "Driemajúca sopka",
+ "Red Canyon": "Červený kaňon",
+ "High Clouds": "Vysoké oblaky",
+ "Volcano Top": "Vrchol sopky",
+ "The King's Nest": "Kráľovo hniezdo",
+ "Baby Dragon Village": "Dedina dráčikov",
+ "Enchanted Forest": "Začarovaný les",
+ "Ice Mountains": "Ľadové hory",
+ "Fire Lake": "Ohnivé jazero",
+ "Treasure Cave": "Jaskyňa pokladov",
+ "Stone Castle": "Kamenný hrad",
+ "Stormy Sky": "Búrkové nebo",
+ "Floating Island": "Plávajúci ostrov",
+ "The Wizard's Tower": "Čarodejníkova veža",
+ "The Dragon's Throne": "Dračí trón",
+ "The Unicorn Kingdom": "Kráľovstvo jednorožcov",
+ "The Kitten Woods": "Les mačiatok",
+ "Dino Island": "Ostrov dinosaurov",
+ "The Dragon Kingdom": "Kráľovstvo drakov",
+ "Little one": "Maličká",
+ "Kitty": "Mačička",
+ "Explorer": "Objaviteľ",
+ "Sparkle": "Iskierka",
+ "Rainbow": "Dúha",
+ "Magic Flower": "Čarovný kvet",
+ "Star": "Hviezdička",
+ "Unicorn": "Jednorožec",
+ "Queen of the Kingdom": "Kráľovná kráľovstva",
+ "Little Yarn Ball": "Klbiečko",
+ "Little Paws": "Labky",
+ "Kitten": "Mačiatko",
+ "Moon Cat": "Mesačná mačka",
+ "Magic Cat": "Čarovná mačka",
+ "Queen of the Kittens": "Kráľovná mačiatok",
+ "Little Egg": "Vajíčko",
+ "Baby Dino": "Dinko",
+ "Young Dino": "Mladý dino",
+ "Strong Dino": "Silný dino",
+ "Volcano Dino": "Sopečný dino",
+ "King of the Dinos": "Kráľ dinosaurov",
+ "Dragon Egg": "Dračie vajce",
+ "Little Dragon": "Dráčik",
+ "Fire Dragon": "Ohnivý drak",
+ "Storm Dragon": "Búrkový drak",
+ "Castle Guardian": "Strážca hradu",
+ "King of the Dragons": "Kráľ drakov",
+ "Counting objects": "Počítanie predmetov",
+ "Matching number and quantity": "Spájanie čísla a počtu",
+ "Colours": "Farby",
+ "Shapes": "Tvary",
+ "Putting quantities together": "Spájanie množstiev",
+ "Sorting and grouping": "Triedenie a zoskupovanie",
+ "Joining number and quantity": "Spájanie čísla a množstva",
+ "Joining animals and shadows": "Spájanie zvierat a tieňov",
+ "Addition": "Sčítanie",
+ "Subtraction": "Odčítanie",
+ "Hidden number (adding and subtracting)": "Skryté číslo (sčítanie a odčítanie)",
+ "Ordering numbers": "Radenie čísel",
+ "Joining sums and answers": "Spájanie príkladov a výsledkov",
+ "Joining times tables and answers": "Spájanie násobilky a výsledkov",
+ "Times tables": "Násobilka",
+ "Clock": "Hodiny",
+ "Problems: knowing if there will be more or fewer": "Úlohy: zistiť, či ich bude viac alebo menej",
+ "Problems: choosing add or subtract": "Úlohy: výber sčítania alebo odčítania",
+ "Problems: working out the answer": "Úlohy: výpočet výsledku",
+ "Bigger and smaller": "Väčšie a menšie",
+ "Before and after": "Pred a po",
+ "Money": "Peniaze",
+ "Recognising numbers": "Rozpoznávanie čísel",
+ "More and fewer (pictures)": "Viac a menej (obrázky)",
+ "Patterns": "Vzory",
+ "Clear all": "Vymazať všetko",
+ "Dino jump": "Dinov skok",
+ "Draw with your finger and pick colours!": "Kresli prstom a vyberaj farby!",
+ "Move the nest with your finger to catch the eggs. The golden ones are worth more!": "Presúvaj hniezdo prstom a chytaj vajíčka. Zlaté sú cennejšie!",
+ "Paint a rainbow": "Namaľuj dúhu",
+ "Rainbow bubbles": "Dúhové bubliny",
+ "Save the eggs": "Zachráň vajíčka",
+ "Tap the bubbles to pop them!": "Ťukaj na bubliny a praskaj ich!",
+ "Tap the screen to jump over the obstacles.": "Ťukni na obrazovku a preskoč prekážky."
+});
+  /*SKD_END*/
+  const MISS = [];
+  const L = (es, en, sk) => {
+    if (LANG === 'en') return en;
+    if (LANG === 'sk') {
+      if (sk !== undefined) return sk;
+      if (SKD[en] !== undefined) return SKD[en];
+      MISS.push(en);
+      return en;
+    }
+    return es;
+  };
   const nm = (x, plural) => (LANG === 'en' ? x.en[plural ? 1 : 0] : (plural ? x.pl : x.sg));
+  // Eslovaco: la forma del nombre depende de la cantidad (1 / 2-4 / 5 o más)
+  const C = (n, a, b, c) => (n === 1 ? a : (n >= 2 && n <= 4 ? b : c));
+  // x.sk = [nominativo sing., nominativo plural (2-4), genitivo plural (5+), acusativo sing.]
+  const nk = (x, n) => C(n, x.sk[0], x.sk[1], x.sk[2]);
+  const nka = (x, n) => C(n, x.sk[3], x.sk[1], x.sk[2]);
 
   /* ---------- Datos ---------- */
   const ANIMALS = [
-    { e: '🐮', sg: 'vaca', pl: 'vacas', g: 'f', en: ['cow', 'cows'] },
-    { e: '🐷', sg: 'cerdito', pl: 'cerditos', g: 'm', en: ['pig', 'pigs'] },
-    { e: '🐔', sg: 'gallina', pl: 'gallinas', g: 'f', en: ['hen', 'hens'] },
-    { e: '🐑', sg: 'oveja', pl: 'ovejas', g: 'f', en: ['sheep', 'sheep'] },
-    { e: '🐴', sg: 'caballo', pl: 'caballos', g: 'm', en: ['horse', 'horses'] },
-    { e: '🐶', sg: 'perrito', pl: 'perritos', g: 'm', en: ['dog', 'dogs'] },
-    { e: '🐱', sg: 'gatito', pl: 'gatitos', g: 'm', en: ['cat', 'cats'] },
-    { e: '🐰', sg: 'conejito', pl: 'conejitos', g: 'm', en: ['rabbit', 'rabbits'] },
-    { e: '🦆', sg: 'patito', pl: 'patitos', g: 'm', en: ['duck', 'ducks'] },
-    { e: '🐸', sg: 'rana', pl: 'ranas', g: 'f', en: ['frog', 'frogs'] },
-    { e: '🐘', sg: 'elefante', pl: 'elefantes', g: 'm', en: ['elephant', 'elephants'] },
-    { e: '🦁', sg: 'león', pl: 'leones', g: 'm', en: ['lion', 'lions'] },
-    { e: '🐒', sg: 'mono', pl: 'monos', g: 'm', en: ['monkey', 'monkeys'] },
-    { e: '🐢', sg: 'tortuga', pl: 'tortugas', g: 'f', en: ['turtle', 'turtles'] },
-    { e: '🐻', sg: 'oso', pl: 'osos', g: 'm', en: ['bear', 'bears'] },
-    { e: '🦒', sg: 'jirafa', pl: 'jirafas', g: 'f', en: ['giraffe', 'giraffes'] },
+    { e: '🐮', sg: 'vaca', pl: 'vacas', g: 'f', en: ['cow', 'cows'], sk: ['krava', 'kravy', 'kráv', 'kravu'] },
+    { e: '🐷', sg: 'cerdito', pl: 'cerditos', g: 'm', en: ['pig', 'pigs'], sk: ['prasiatko', 'prasiatka', 'prasiatok', 'prasiatko'] },
+    { e: '🐔', sg: 'gallina', pl: 'gallinas', g: 'f', en: ['hen', 'hens'], sk: ['sliepka', 'sliepky', 'sliepok', 'sliepku'] },
+    { e: '🐑', sg: 'oveja', pl: 'ovejas', g: 'f', en: ['sheep', 'sheep'], sk: ['ovca', 'ovce', 'oviec', 'ovcu'] },
+    { e: '🐴', sg: 'caballo', pl: 'caballos', g: 'm', en: ['horse', 'horses'], sk: ['kôň', 'kone', 'koní', 'koňa'] },
+    { e: '🐶', sg: 'perrito', pl: 'perritos', g: 'm', en: ['dog', 'dogs'], sk: ['psík', 'psíky', 'psíkov', 'psíka'] },
+    { e: '🐱', sg: 'gatito', pl: 'gatitos', g: 'm', en: ['cat', 'cats'], sk: ['mačka', 'mačky', 'mačiek', 'mačku'] },
+    { e: '🐰', sg: 'conejito', pl: 'conejitos', g: 'm', en: ['rabbit', 'rabbits'], sk: ['zajac', 'zajace', 'zajacov', 'zajaca'] },
+    { e: '🦆', sg: 'patito', pl: 'patitos', g: 'm', en: ['duck', 'ducks'], sk: ['kačka', 'kačky', 'kačiek', 'kačku'] },
+    { e: '🐸', sg: 'rana', pl: 'ranas', g: 'f', en: ['frog', 'frogs'], sk: ['žaba', 'žaby', 'žiab', 'žabu'] },
+    { e: '🐘', sg: 'elefante', pl: 'elefantes', g: 'm', en: ['elephant', 'elephants'], sk: ['slon', 'slony', 'slonov', 'slona'] },
+    { e: '🦁', sg: 'león', pl: 'leones', g: 'm', en: ['lion', 'lions'], sk: ['lev', 'levy', 'levov', 'leva'] },
+    { e: '🐒', sg: 'mono', pl: 'monos', g: 'm', en: ['monkey', 'monkeys'], sk: ['opica', 'opice', 'opíc', 'opicu'] },
+    { e: '🐢', sg: 'tortuga', pl: 'tortugas', g: 'f', en: ['turtle', 'turtles'], sk: ['korytnačka', 'korytnačky', 'korytnačiek', 'korytnačku'] },
+    { e: '🐻', sg: 'oso', pl: 'osos', g: 'm', en: ['bear', 'bears'], sk: ['medveď', 'medvede', 'medveďov', 'medveďa'] },
+    { e: '🦒', sg: 'jirafa', pl: 'jirafas', g: 'f', en: ['giraffe', 'giraffes'], sk: ['žirafa', 'žirafy', 'žiráf', 'žirafu'] },
   ];
   const FRUITS = [
-    { e: '🍎', sg: 'manzana', pl: 'manzanas', en: ['apple', 'apples'] },
-    { e: '🍌', sg: 'plátano', pl: 'plátanos', en: ['banana', 'bananas'] },
-    { e: '🍓', sg: 'fresa', pl: 'fresas', en: ['strawberry', 'strawberries'] },
-    { e: '🍊', sg: 'naranja', pl: 'naranjas', en: ['orange', 'oranges'] },
-    { e: '🍐', sg: 'pera', pl: 'peras', en: ['pear', 'pears'] },
-    { e: '🍇', sg: 'uva', pl: 'uvas', en: ['grape', 'grapes'] },
+    { e: '🍎', sg: 'manzana', pl: 'manzanas', en: ['apple', 'apples'], sk: ['jablko', 'jablká', 'jabĺk', 'jablko'] },
+    { e: '🍌', sg: 'plátano', pl: 'plátanos', en: ['banana', 'bananas'], sk: ['banán', 'banány', 'banánov', 'banán'] },
+    { e: '🍓', sg: 'fresa', pl: 'fresas', en: ['strawberry', 'strawberries'], sk: ['jahoda', 'jahody', 'jahôd', 'jahodu'] },
+    { e: '🍊', sg: 'naranja', pl: 'naranjas', en: ['orange', 'oranges'], sk: ['pomaranč', 'pomaranče', 'pomarančov', 'pomaranč'] },
+    { e: '🍐', sg: 'pera', pl: 'peras', en: ['pear', 'pears'], sk: ['hruška', 'hrušky', 'hrušiek', 'hrušku'] },
+    { e: '🍇', sg: 'uva', pl: 'uvas', en: ['grape', 'grapes'], sk: ['strapec hrozna', 'strapce hrozna', 'strapcov hrozna', 'strapec hrozna'] },
   ];
   const COLORS = [
-    { n: 'rojo', en: 'red', h: '#e53935' },
-    { n: 'azul', en: 'blue', h: '#1e88e5' },
-    { n: 'verde', en: 'green', h: '#43a047' },
-    { n: 'amarillo', en: 'yellow', h: '#fdd835' },
-    { n: 'naranja', en: 'orange', h: '#fb8c00' },
-    { n: 'morado', en: 'purple', h: '#8e24aa' },
-    { n: 'rosa', en: 'pink', h: '#ec407a' },
-    { n: 'marrón', en: 'brown', h: '#6d4c41' },
+    { n: 'rojo', sk: 'červená', en: 'red', h: '#e53935' },
+    { n: 'azul', sk: 'modrá', en: 'blue', h: '#1e88e5' },
+    { n: 'verde', sk: 'zelená', en: 'green', h: '#43a047' },
+    { n: 'amarillo', sk: 'žltá', en: 'yellow', h: '#fdd835' },
+    { n: 'naranja', sk: 'oranžová', en: 'orange', h: '#fb8c00' },
+    { n: 'morado', sk: 'fialová', en: 'purple', h: '#8e24aa' },
+    { n: 'rosa', sk: 'ružová', en: 'pink', h: '#ec407a' },
+    { n: 'marrón', sk: 'hnedá', en: 'brown', h: '#6d4c41' },
   ];
   const COLOR_THINGS = [
     { e: '🍎', c: 'rojo' },
@@ -64,18 +400,18 @@ const Games = (function () {
     { e: '🐷', c: 'rosa' },
   ];
   const SHAPES = [
-    { n: 'círculo', en: 'circle', art: 'el', svg: (c) => `<circle cx="50" cy="50" r="40" fill="${c}"/>` },
-    { n: 'cuadrado', en: 'square', art: 'el', svg: (c) => `<rect x="12" y="12" width="76" height="76" fill="${c}"/>` },
-    { n: 'triángulo', en: 'triangle', art: 'el', svg: (c) => `<polygon points="50,10 92,88 8,88" fill="${c}"/>` },
-    { n: 'estrella', en: 'star', art: 'la', svg: (c) => `<polygon points="50,6 61,38 95,38 67,58 78,92 50,71 22,92 33,58 5,38 39,38" fill="${c}"/>` },
-    { n: 'corazón', en: 'heart', art: 'el', svg: (c) => `<path d="M50 88 C10 58 6 30 28 20 C40 15 50 24 50 32 C50 24 60 15 72 20 C94 30 90 58 50 88Z" fill="${c}"/>` },
-    { n: 'rectángulo', en: 'rectangle', art: 'el', svg: (c) => `<rect x="4" y="26" width="92" height="48" fill="${c}"/>` },
+    { n: 'círculo', sk: 'kruh', ska: 'kruh', en: 'circle', art: 'el', svg: (c) => `<circle cx="50" cy="50" r="40" fill="${c}"/>` },
+    { n: 'cuadrado', sk: 'štvorec', ska: 'štvorec', en: 'square', art: 'el', svg: (c) => `<rect x="12" y="12" width="76" height="76" fill="${c}"/>` },
+    { n: 'triángulo', sk: 'trojuholník', ska: 'trojuholník', en: 'triangle', art: 'el', svg: (c) => `<polygon points="50,10 92,88 8,88" fill="${c}"/>` },
+    { n: 'estrella', sk: 'hviezda', ska: 'hviezdu', en: 'star', art: 'la', svg: (c) => `<polygon points="50,6 61,38 95,38 67,58 78,92 50,71 22,92 33,58 5,38 39,38" fill="${c}"/>` },
+    { n: 'corazón', sk: 'srdce', ska: 'srdce', en: 'heart', art: 'el', svg: (c) => `<path d="M50 88 C10 58 6 30 28 20 C40 15 50 24 50 32 C50 24 60 15 72 20 C94 30 90 58 50 88Z" fill="${c}"/>` },
+    { n: 'rectángulo', sk: 'obdĺžnik', ska: 'obdĺžnik', en: 'rectangle', art: 'el', svg: (c) => `<rect x="4" y="26" width="92" height="48" fill="${c}"/>` },
   ];
   const SHADOW_ANIMALS = ['🐘', '🦒', '🐢', '🦆', '🐔', '🐑', '🐟', '🦋', '🐙', '🐌', '🐝', '🦀'];
   const SORT_SETS = [
-    { key: 'animales', label: 'Animales', en: 'Animals', e: '🐾', items: ['🐶', '🐱', '🐰', '🐮', '🐷', '🐸'] },
-    { key: 'frutas', label: 'Frutas', en: 'Fruit', e: '🧺', items: ['🍎', '🍌', '🍓', '🍐', '🍊', '🍇'] },
-    { key: 'transportes', label: 'Transportes', en: 'Transport', e: '🛣️', items: ['🚗', '🚌', '🚲', '✈️', '🚂', '🚁'] },
+    { key: 'animales', label: 'Animales', en: 'Animals', sk: 'Zvieratá', e: '🐾', items: ['🐶', '🐱', '🐰', '🐮', '🐷', '🐸'] },
+    { key: 'frutas', label: 'Frutas', en: 'Fruit', sk: 'Ovocie', e: '🧺', items: ['🍎', '🍌', '🍓', '🍐', '🍊', '🍇'] },
+    { key: 'transportes', label: 'Transportes', en: 'Transport', sk: 'Doprava', e: '🛣️', items: ['🚗', '🚌', '🚲', '✈️', '🚂', '🚁'] },
   ];
 
   /* ---------- Utilidades de opciones ---------- */
@@ -102,7 +438,7 @@ const Games = (function () {
     const n = rnd(1, max);
     const a = pick(ANIMALS);
     const items = Array.from({ length: n }, () => `<button class="countable" type="button" data-act="count">${a.e}</button>`).join('');
-    const q = L(`¿Cuánt${a.g === 'f' ? 'as' : 'os'} ${a.pl} hay?`, `How many ${nm(a, true)} are there?`);
+    const q = L(`¿Cuánt${a.g === 'f' ? 'as' : 'os'} ${a.pl} hay?`, `How many ${nm(a, true)} are there?`, `Koľko ${a.sk[2]} tu je?`);
     return {
       tag: 'contar',
       steps: [{
@@ -120,7 +456,7 @@ const Games = (function () {
     const n = rnd(1, max);
     const a = pick(ANIMALS);
     const counts = numOptions(n, [], { min: 1, max: Math.max(max, 3) }).map((o) => o.value);
-    const prompt = L(`Toca el grupo que tiene ${n} ${n === 1 ? a.sg : a.pl}`, `Tap the group with ${n} ${nm(a, n !== 1)}`);
+    const prompt = L(`Toca el grupo que tiene ${n} ${n === 1 ? a.sg : a.pl}`, `Tap the group with ${n} ${nm(a, n !== 1)}`, `Ťukni na skupinu, ktorá má ${n} ${nka(a, n)}`);
     return {
       tag: 'grupos',
       steps: [{
@@ -146,7 +482,7 @@ const Games = (function () {
     if (Math.random() < 0.4) {
       const sh = pick(SHAPES.filter((s) => s.n !== 'rectángulo'));
       const de = sh.art === 'la' ? 'de la' : 'del';
-      const pq = L(`Toca el color ${de} ${sh.n}`, `Tap the colour of the ${sh.en}`);
+      const pq = L(`Toca el color ${de} ${sh.n}`, `Tap the colour of the ${sh.en}`, 'Ťukni na farbu tohto tvaru');
       return {
         tag: 'colores',
         steps: [{
@@ -163,8 +499,8 @@ const Games = (function () {
       tag: 'colores',
       steps: [{
         tag: 'colores',
-        prompt: L(`Toca el color ${t.n.toUpperCase()}`, `Tap the colour ${t.en.toUpperCase()}`),
-        speak: L(`Toca el color ${t.n}`, `Tap the colour ${t.en}`),
+        prompt: L(`Toca el color ${t.n.toUpperCase()}`, `Tap the colour ${t.en.toUpperCase()}`, `Ťukni na farbu ${t.sk.toUpperCase()}`),
+        speak: L(`Toca el color ${t.n}`, `Tap the colour ${t.en}`, `Ťukni na farbu ${t.sk}`),
         layout: 'swatch',
         options,
       }],
@@ -182,8 +518,8 @@ const Games = (function () {
       tag: 'formas',
       steps: [{
         tag: 'formas',
-        prompt: L(`Toca ${t.art} ${t.n}`, `Tap the ${t.en}`),
-        speak: L(`Toca ${t.art} ${t.n}`, `Tap the ${t.en}`),
+        prompt: L(`Toca ${t.art} ${t.n}`, `Tap the ${t.en}`, `Ťukni na ${t.ska}`),
+        speak: L(`Toca ${t.art} ${t.n}`, `Tap the ${t.en}`, `Ťukni na ${t.ska}`),
         layout: 'shapes',
         options: all.map((s, i) => ({
           html: `<svg viewBox="0 0 100 100" class="shape">${s.svg(cols[i].h)}</svg>`,
@@ -197,7 +533,7 @@ const Games = (function () {
     const a = rnd(1, max - 1);
     const b = rnd(1, max - a);
     const f = pick(FRUITS);
-    const prompt = L(`Juntamos ${a} ${a === 1 ? f.sg : f.pl} con ${b} ${b === 1 ? f.sg : f.pl}. ¿Cuántas frutas hay en total?`, `We put ${a} ${nm(f, a !== 1)} together with ${b} ${nm(f, b !== 1)}. How many pieces of fruit are there altogether?`);
+    const prompt = L(`Juntamos ${a} ${a === 1 ? f.sg : f.pl} con ${b} ${b === 1 ? f.sg : f.pl}. ¿Cuántas frutas hay en total?`, `We put ${a} ${nm(f, a !== 1)} together with ${b} ${nm(f, b !== 1)}. How many pieces of fruit are there altogether?`, `Dáme dokopy ${a} ${nka(f, a)} a ${b} ${nka(f, b)}. Koľko kusov ovocia je spolu?`);
     return {
       tag: 'sumas-visual',
       steps: [{
@@ -216,8 +552,8 @@ const Games = (function () {
     const n = rnd(1, max);
     const f = pick(FRUITS);
     const total = Math.min(10, n + rnd(2, 4));
-    const prompt = L(`Mete ${n} ${n === 1 ? f.sg : f.pl} en el cesto`, `Put ${n} ${nm(f, n !== 1)} in the basket`);
-    return { type: 'drag-count', tag: 'contar', n, e: f.e, total, prompt, speak: L(`Arrastra ${n} ${n === 1 ? f.sg : f.pl} al cesto`, `Drag ${n} ${nm(f, n !== 1)} into the basket`) };
+    const prompt = L(`Mete ${n} ${n === 1 ? f.sg : f.pl} en el cesto`, `Put ${n} ${nm(f, n !== 1)} in the basket`, `Daj ${n} ${nka(f, n)} do košíka`);
+    return { type: 'drag-count', tag: 'contar', n, e: f.e, total, prompt, speak: L(`Arrastra ${n} ${n === 1 ? f.sg : f.pl} al cesto`, `Drag ${n} ${nm(f, n !== 1)} into the basket`, `Presuň ${n} ${nka(f, n)} do košíka`) };
   }
 
   function dragSortQ() {
@@ -230,8 +566,8 @@ const Games = (function () {
       type: 'drag-sort',
       tag: 'clasificar',
       prompt: L('Lleva cada dibujo a su grupo', 'Take each picture to its group'),
-      speak: L(`Lleva cada dibujo a su grupo: ${a.label.toLowerCase()} o ${b.label.toLowerCase()}`, `Take each picture to its group: ${a.en.toLowerCase()} or ${b.en.toLowerCase()}`),
-      zones: [{ key: a.key, label: L(a.label, a.en), e: a.e }, { key: b.key, label: L(b.label, b.en), e: b.e }],
+      speak: L(`Lleva cada dibujo a su grupo: ${a.label.toLowerCase()} o ${b.label.toLowerCase()}`, `Take each picture to its group: ${a.en.toLowerCase()} or ${b.en.toLowerCase()}`, `Odnes každý obrázok do jeho skupiny: ${a.sk.toLowerCase()} alebo ${b.sk.toLowerCase()}`),
+      zones: [{ key: a.key, label: L(a.label, a.en, a.sk), e: a.e }, { key: b.key, label: L(b.label, b.en, b.sk), e: b.e }],
       items,
     };
   }
@@ -363,7 +699,7 @@ const Games = (function () {
       steps: [{
         tag: 'sumas',
         prompt: `${a} + ${b} = ?`,
-        speak: L(`${a} más ${b}. ¿Cuánto es?`, `${a} plus ${b}. What is the answer?`),
+        speak: L(`${a} más ${b}. ¿Cuánto es?`, `${a} plus ${b}. What is the answer?`, `${a} plus ${b}. Koľko je to?`),
         layout: 'num',
         options: numOptions(ans, [ans + 10, ans - 10, ans + 1, ans - 1], { min: 0 }),
       }],
@@ -383,7 +719,7 @@ const Games = (function () {
       steps: [{
         tag: 'restas',
         prompt: `${a} − ${b} = ?`,
-        speak: L(`${a} menos ${b}. ¿Cuánto es?`, `${a} minus ${b}. What is the answer?`),
+        speak: L(`${a} menos ${b}. ¿Cuánto es?`, `${a} minus ${b}. What is the answer?`, `${a} mínus ${b}. Koľko je to?`),
         layout: 'num',
         options: numOptions(ans, [ans + 10, ans - 10, ans + 1, ans - 1], { min: 0 }),
       }],
@@ -396,7 +732,7 @@ const Games = (function () {
     const ans = s - a;
     const useAdd = Math.random() < 0.5;
     const prompt = useAdd ? `${a} + ? = ${s}` : `${s} − ? = ${a}`;
-    const sp = useAdd ? L(`${a} más qué número es igual a ${s}`, `${a} plus what number equals ${s}`) : L(`${s} menos qué número es igual a ${a}`, `${s} minus what number equals ${a}`);
+    const sp = useAdd ? L(`${a} más qué número es igual a ${s}`, `${a} plus what number equals ${s}`, `${a} plus aké číslo sa rovná ${s}`) : L(`${s} menos qué número es igual a ${a}`, `${s} minus what number equals ${a}`, `${s} mínus aké číslo sa rovná ${a}`);
     return {
       tag: 'sumas-faltantes',
       steps: [{
@@ -418,7 +754,7 @@ const Games = (function () {
       steps: [{
         tag: 'tablas',
         prompt: `${a} × ${b} = ?`,
-        speak: L(`${a} por ${b}. ¿Cuánto es?`, `${a} times ${b}. What is the answer?`),
+        speak: L(`${a} por ${b}. ¿Cuánto es?`, `${a} times ${b}. What is the answer?`, `${a} krát ${b}. Koľko je to?`),
         layout: 'num',
         options: numOptions(ans, [a * (b + 1), a * (b - 1), ans + 1, ans - 1], { min: 0 }),
       }],
@@ -487,44 +823,44 @@ const Games = (function () {
   /* ---------- Problemas guiados ---------- */
   const SCENARIOS = [
     { e: '🦴',
-      add: (a, b) => L(`El perro tiene ${a} huesos. Su amigo le regala ${b} más. ¿Cuántos huesos tiene ahora?`, `The dog has ${a} bones. His friend gives him ${b} more. How many bones does he have now?`),
-      sub: (a, b) => L(`El perro tenía ${a} huesos. Se comió ${b}. ¿Cuántos huesos le quedan?`, `The dog had ${a} bones. He ate ${b}. How many bones are left?`) },
+      add: (a, b) => L(`El perro tiene ${a} huesos. Su amigo le regala ${b} más. ¿Cuántos huesos tiene ahora?`, `The dog has ${a} bones. His friend gives him ${b} more. How many bones does he have now?`, `Pes má ${a} ${C(a, 'kosť', 'kosti', 'kostí')}. Kamarát mu daruje ešte ${b}. Koľko kostí má teraz?`),
+      sub: (a, b) => L(`El perro tenía ${a} huesos. Se comió ${b}. ¿Cuántos huesos le quedan?`, `The dog had ${a} bones. He ate ${b}. How many bones are left?`, `Pes mal ${a} ${C(a, 'kosť', 'kosti', 'kostí')}. Zjedol ${b}. Koľko kostí mu zostalo?`) },
     { e: '🍌',
-      add: (a, b) => L(`El mono recoge ${a} plátanos por la mañana y ${b} por la tarde. ¿Cuántos plátanos recoge en total?`, `The monkey picks ${a} bananas in the morning and ${b} in the afternoon. How many bananas does the monkey pick altogether?`),
-      sub: (a, b) => L(`El mono tenía ${a} plátanos y regaló ${b} a su amigo. ¿Cuántos plátanos le quedan?`, `The monkey had ${a} bananas and gave ${b} to a friend. How many bananas are left?`) },
+      add: (a, b) => L(`El mono recoge ${a} plátanos por la mañana y ${b} por la tarde. ¿Cuántos plátanos recoge en total?`, `The monkey picks ${a} bananas in the morning and ${b} in the afternoon. How many bananas does the monkey pick altogether?`, `Opica nazbiera ráno ${a} ${C(a, 'banán', 'banány', 'banánov')} a popoludní ${b}. Koľko banánov nazbiera spolu?`),
+      sub: (a, b) => L(`El mono tenía ${a} plátanos y regaló ${b} a su amigo. ¿Cuántos plátanos le quedan?`, `The monkey had ${a} bananas and gave ${b} to a friend. How many bananas are left?`, `Opica mala ${a} ${C(a, 'banán', 'banány', 'banánov')} a ${b} dala kamarátovi. Koľko banánov jej zostalo?`) },
     { e: '🐟',
-      add: (a, b) => L(`El gato pesca ${a} peces y luego pesca ${b} más. ¿Cuántos peces tiene?`, `The cat catches ${a} fish and then catches ${b} more. How many fish does the cat have?`),
-      sub: (a, b) => L(`El gato tenía ${a} peces. Se le escaparon ${b}. ¿Cuántos peces le quedan?`, `The cat had ${a} fish. ${b} swam away. How many fish are left?`) },
+      add: (a, b) => L(`El gato pesca ${a} peces y luego pesca ${b} más. ¿Cuántos peces tiene?`, `The cat catches ${a} fish and then catches ${b} more. How many fish does the cat have?`, `Mačka chytí ${a} ${C(a, 'rybu', 'ryby', 'rýb')} a potom ešte ${b}. Koľko rýb má mačka?`),
+      sub: (a, b) => L(`El gato tenía ${a} peces. Se le escaparon ${b}. ¿Cuántos peces le quedan?`, `The cat had ${a} fish. ${b} swam away. How many fish are left?`, `Mačka mala ${a} ${C(a, 'rybu', 'ryby', 'rýb')}. ${b} jej uplávalo. Koľko rýb jej zostalo?`) },
     { e: '🥕',
-      add: (a, b) => L(`El conejo tiene ${a} zanahorias y encuentra ${b} más en el huerto. ¿Cuántas zanahorias tiene ahora?`, `The rabbit has ${a} carrots and finds ${b} more in the garden. How many carrots does the rabbit have now?`),
-      sub: (a, b) => L(`El conejo tenía ${a} zanahorias y se come ${b}. ¿Cuántas zanahorias le quedan?`, `The rabbit had ${a} carrots and eats ${b}. How many carrots are left?`) },
+      add: (a, b) => L(`El conejo tiene ${a} zanahorias y encuentra ${b} más en el huerto. ¿Cuántas zanahorias tiene ahora?`, `The rabbit has ${a} carrots and finds ${b} more in the garden. How many carrots does the rabbit have now?`, `Zajac má ${a} ${C(a, 'mrkvu', 'mrkvy', 'mrkiev')} a v záhrade nájde ešte ${b}. Koľko mrkiev má teraz?`),
+      sub: (a, b) => L(`El conejo tenía ${a} zanahorias y se come ${b}. ¿Cuántas zanahorias le quedan?`, `The rabbit had ${a} carrots and eats ${b}. How many carrots are left?`, `Zajac mal ${a} ${C(a, 'mrkvu', 'mrkvy', 'mrkiev')} a ${b} zjedol. Koľko mrkiev mu zostalo?`) },
     { e: '🐝',
-      add: (a, b) => L(`Hay ${a} abejas en una flor. Llegan ${b} abejas más. ¿Cuántas abejas hay ahora?`, `There are ${a} bees on a flower. ${b} more bees arrive. How many bees are there now?`),
-      sub: (a, b) => L(`Había ${a} abejas en una flor. Se van volando ${b}. ¿Cuántas abejas quedan?`, `There were ${a} bees on a flower. ${b} fly away. How many bees are left?`) },
+      add: (a, b) => L(`Hay ${a} abejas en una flor. Llegan ${b} abejas más. ¿Cuántas abejas hay ahora?`, `There are ${a} bees on a flower. ${b} more bees arrive. How many bees are there now?`, `Na kvete vidíme ${a} ${C(a, 'včelu', 'včely', 'včiel')}. Priletí ešte ${b}. Koľko včiel je teraz na kvete?`),
+      sub: (a, b) => L(`Había ${a} abejas en una flor. Se van volando ${b}. ¿Cuántas abejas quedan?`, `There were ${a} bees on a flower. ${b} fly away. How many bees are left?`, `Na kvete sme videli ${a} ${C(a, 'včelu', 'včely', 'včiel')}. Odletelo ${b}. Koľko včiel zostalo?`) },
     { e: '🥚',
-      add: (a, b) => L(`Rexi el dinosaurio tiene ${a} huevos en su nido y encuentra ${b} más. ¿Cuántos huevos tiene ahora?`, `Rexi the dinosaur has ${a} eggs in the nest and finds ${b} more. How many eggs does Rexi have now?`),
-      sub: (a, b) => L(`Rexi el dinosaurio tenía ${a} huevos y regala ${b} a su amiga Tric. ¿Cuántos huevos le quedan?`, `Rexi the dinosaur had ${a} eggs and gives ${b} to his friend Tric. How many eggs are left?`) },
+      add: (a, b) => L(`Rexi el dinosaurio tiene ${a} huevos en su nido y encuentra ${b} más. ¿Cuántos huevos tiene ahora?`, `Rexi the dinosaur has ${a} eggs in the nest and finds ${b} more. How many eggs does Rexi have now?`, `Dinosaurus Rexi má v hniezde ${a} ${C(a, 'vajce', 'vajcia', 'vajec')} a nájde ešte ${b}. Koľko vajec má teraz?`),
+      sub: (a, b) => L(`Rexi el dinosaurio tenía ${a} huevos y regala ${b} a su amiga Tric. ¿Cuántos huevos le quedan?`, `Rexi the dinosaur had ${a} eggs and gives ${b} to his friend Tric. How many eggs are left?`, `Dinosaurus Rexi mal ${a} ${C(a, 'vajce', 'vajcia', 'vajec')} a ${b} dal kamarátke Tric. Koľko vajec mu zostalo?`) },
     { e: '🌿',
-      add: (a, b) => L(`Tric el dinosaurio come ${a} hojas por la mañana y ${b} por la tarde. ¿Cuántas hojas come en total?`, `Tric the dinosaur eats ${a} leaves in the morning and ${b} in the afternoon. How many leaves does Tric eat altogether?`),
-      sub: (a, b) => L(`Tric el dinosaurio tenía ${a} hojas y se come ${b}. ¿Cuántas hojas le quedan?`, `Tric the dinosaur had ${a} leaves and eats ${b}. How many leaves are left?`) },
+      add: (a, b) => L(`Tric el dinosaurio come ${a} hojas por la mañana y ${b} por la tarde. ¿Cuántas hojas come en total?`, `Tric the dinosaur eats ${a} leaves in the morning and ${b} in the afternoon. How many leaves does Tric eat altogether?`, `Dinosaurus Tric zje ráno ${a} ${C(a, 'list', 'listy', 'listov')} a popoludní ${b}. Koľko listov zje spolu?`),
+      sub: (a, b) => L(`Tric el dinosaurio tenía ${a} hojas y se come ${b}. ¿Cuántas hojas le quedan?`, `Tric the dinosaur had ${a} leaves and eats ${b}. How many leaves are left?`, `Dinosaurus Tric mal ${a} ${C(a, 'list', 'listy', 'listov')} a ${b} zjedol. Koľko listov mu zostalo?`) },
     { e: '⭐',
-      add: (a, b) => L(`Luna tiene ${a} estrellas de premio y gana ${b} más. ¿Cuántas estrellas tiene ahora?`, `Luna has ${a} prize stars and wins ${b} more. How many stars does Luna have now?`),
-      sub: (a, b) => L(`Luna tenía ${a} estrellas de premio y regala ${b} a su hermano. ¿Cuántas estrellas le quedan?`, `Luna had ${a} prize stars and gives ${b} to her brother. How many stars are left?`) },
+      add: (a, b) => L(`Luna tiene ${a} estrellas de premio y gana ${b} más. ¿Cuántas estrellas tiene ahora?`, `Luna has ${a} prize stars and wins ${b} more. How many stars does Luna have now?`, `Luna má ${a} ${C(a, 'hviezdu', 'hviezdy', 'hviezd')} za odmenu a získa ešte ${b}. Koľko hviezd má teraz?`),
+      sub: (a, b) => L(`Luna tenía ${a} estrellas de premio y regala ${b} a su hermano. ¿Cuántas estrellas le quedan?`, `Luna had ${a} prize stars and gives ${b} to her brother. How many stars are left?`, `Luna mala ${a} ${C(a, 'hviezdu', 'hviezdy', 'hviezd')} za odmenu a ${b} dala bratovi. Koľko hviezd jej zostalo?`) },
   ];
   // "Dar a otro": se resta, sin el concepto de "cuántos más"
   const CMP = [
-    { e: '🌟', f: (a, b) => L(`Luna tiene ${a} pegatinas y le da ${b} a su amigo Leo. ¿Cuántas pegatinas le quedan a Luna?`, `Luna has ${a} stickers and gives ${b} to her friend Leo. How many stickers does Luna have left?`) },
-    { e: '🦴', f: (a, b) => L(`Rexi tiene ${a} huesos y le da ${b} a su amiga Tric. ¿Cuántos huesos le quedan a Rexi?`, `Rexi has ${a} bones and gives ${b} to his friend Tric. How many bones does Rexi have left?`) },
-    { e: '🍪', f: (a, b) => L(`Leo tiene ${a} galletas y le da ${b} a su hermana. ¿Cuántas galletas le quedan a Leo?`, `Leo has ${a} biscuits and gives ${b} to his sister. How many biscuits does Leo have left?`) },
-    { e: '🐮', f: (a, b) => L(`El granjero tiene ${a} vacas y vende ${b} a otro granjero. ¿Cuántas vacas le quedan?`, `The farmer has ${a} cows and sells ${b} to another farmer. How many cows does the farmer have left?`) },
+    { e: '🌟', f: (a, b) => L(`Luna tiene ${a} pegatinas y le da ${b} a su amigo Leo. ¿Cuántas pegatinas le quedan a Luna?`, `Luna has ${a} stickers and gives ${b} to her friend Leo. How many stickers does Luna have left?`, `Luna má ${a} ${C(a, 'nálepku', 'nálepky', 'nálepiek')} a ${b} dá kamarátovi Leovi. Koľko nálepiek jej zostane?`) },
+    { e: '🦴', f: (a, b) => L(`Rexi tiene ${a} huesos y le da ${b} a su amiga Tric. ¿Cuántos huesos le quedan a Rexi?`, `Rexi has ${a} bones and gives ${b} to his friend Tric. How many bones does Rexi have left?`, `Rexi má ${a} ${C(a, 'kosť', 'kosti', 'kostí')} a ${b} dá kamarátke Tric. Koľko kostí mu zostane?`) },
+    { e: '🍪', f: (a, b) => L(`Leo tiene ${a} galletas y le da ${b} a su hermana. ¿Cuántas galletas le quedan a Leo?`, `Leo has ${a} biscuits and gives ${b} to his sister. How many biscuits does Leo have left?`, `Leo má ${a} ${C(a, 'sušienku', 'sušienky', 'sušienok')} a ${b} dá sestre. Koľko sušienok mu zostane?`) },
+    { e: '🐮', f: (a, b) => L(`El granjero tiene ${a} vacas y vende ${b} a otro granjero. ¿Cuántas vacas le quedan?`, `The farmer has ${a} cows and sells ${b} to another farmer. How many cows does the farmer have left?`, `Farmár má ${a} ${C(a, 'kravu', 'kravy', 'kráv')} a ${b} predá inému farmárovi. Koľko kráv mu zostane?`) },
   ];
   // "Entre los dos / en total": se suma
   const TOT = [
-    { e: '🌟', f: (a, b) => L(`Luna tiene ${a} pegatinas y Leo tiene ${b}. ¿Cuántas pegatinas tienen entre los dos?`, `Luna has ${a} stickers and Leo has ${b}. How many stickers do they have between them?`) },
-    { e: '🦴', f: (a, b) => L(`Rexi encontró ${a} huesos y Tric encontró ${b}. ¿Cuántos huesos tienen entre los dos?`, `Rexi found ${a} bones and Tric found ${b}. How many bones do they have between them?`) },
-    { e: '🦁', f: (a, b) => L(`En el zoo hay ${a} leones y ${b} tigres. ¿Cuántos felinos hay en total?`, `At the zoo there are ${a} lions and ${b} tigers. How many big cats are there altogether?`) },
-    { e: '✏️', f: (a, b) => L(`En la caja hay ${a} lápices rojos y ${b} lápices azules. ¿Cuántos lápices hay en total?`, `In the box there are ${a} red pencils and ${b} blue pencils. How many pencils are there altogether?`) },
-    { e: '🍎', f: (a, b) => L(`Luna tiene ${a} manzanas y Leo le regala ${b}. ¿Cuántas manzanas tiene Luna en total?`, `Luna has ${a} apples and Leo gives her ${b} more. How many apples does Luna have altogether?`) },
+    { e: '🌟', f: (a, b) => L(`Luna tiene ${a} pegatinas y Leo tiene ${b}. ¿Cuántas pegatinas tienen entre los dos?`, `Luna has ${a} stickers and Leo has ${b}. How many stickers do they have between them?`, `Luna má ${a} ${C(a, 'nálepku', 'nálepky', 'nálepiek')} a Leo má ${b}. Koľko nálepiek majú spolu?`) },
+    { e: '🦴', f: (a, b) => L(`Rexi encontró ${a} huesos y Tric encontró ${b}. ¿Cuántos huesos tienen entre los dos?`, `Rexi found ${a} bones and Tric found ${b}. How many bones do they have between them?`, `Rexi našiel ${a} ${C(a, 'kosť', 'kosti', 'kostí')} a Tric našla ${b}. Koľko kostí majú spolu?`) },
+    { e: '🦁', f: (a, b) => L(`En el zoo hay ${a} leones y ${b} tigres. ¿Cuántos felinos hay en total?`, `At the zoo there are ${a} lions and ${b} tigers. How many big cats are there altogether?`, `V zoo vidíme ${a} ${C(a, 'leva', 'levy', 'levov')} a ${b} ${C(b, 'tigra', 'tigre', 'tigrov')}. Koľko šeliem je to spolu?`) },
+    { e: '✏️', f: (a, b) => L(`En la caja hay ${a} lápices rojos y ${b} lápices azules. ¿Cuántos lápices hay en total?`, `In the box there are ${a} red pencils and ${b} blue pencils. How many pencils are there altogether?`, `V škatuli máme ${a} ${C(a, 'červenú ceruzku', 'červené ceruzky', 'červených ceruziek')} a ${b} ${C(b, 'modrú ceruzku', 'modré ceruzky', 'modrých ceruziek')}. Koľko ceruziek je spolu?`) },
+    { e: '🍎', f: (a, b) => L(`Luna tiene ${a} manzanas y Leo le regala ${b}. ¿Cuántas manzanas tiene Luna en total?`, `Luna has ${a} apples and Leo gives her ${b} more. How many apples does Luna have altogether?`, `Luna má ${a} ${C(a, 'jablko', 'jablká', 'jabĺk')} a Leo jej daruje ešte ${b}. Koľko jabĺk má Luna spolu?`) },
   ];
   const OPHINT = {
     get add() { return L('Juntar o añadir cosas = SUMAR ➕', 'Putting things together or adding more = ADD ➕'); },
@@ -607,7 +943,7 @@ const Games = (function () {
     steps.push({
       tag: 'prob-resultado',
       prompt: `${a} ${sym} ${b} = ?`,
-      speak: L(`${a} ${SAY[sym]} ${b}. ¿Cuánto es?`, `${a} ${SAY[sym]} ${b}. What is the answer?`),
+      speak: L(`${a} ${SAY[sym]} ${b}. ¿Cuánto es?`, `${a} ${SAY[sym]} ${b}. What is the answer?`, `${a} ${SAY[sym]} ${b}. Koľko je to?`),
       layout: 'num',
       options: numOptions(ans, [wrongRes, ans + 1, ans - 1, ans + 10, ans - 10], { min: 0 }),
     });
@@ -631,7 +967,7 @@ const Games = (function () {
     const ans = a + b;
     return {
       tag: 'sumas',
-      steps: [{ tag: 'sumas', prompt: `${a} + ${b} = ?`, speak: L(`${a} más ${b}. ¿Cuánto es?`, `${a} plus ${b}. What is the answer?`), layout: 'num', options: numOptions(ans, [ans + 10, ans - 10, ans + 1, ans - 1], { min: 0 }) }],
+      steps: [{ tag: 'sumas', prompt: `${a} + ${b} = ?`, speak: L(`${a} más ${b}. ¿Cuánto es?`, `${a} plus ${b}. What is the answer?`, `${a} plus ${b}. Koľko je to?`), layout: 'num', options: numOptions(ans, [ans + 10, ans - 10, ans + 1, ans - 1], { min: 0 }) }],
     };
   }
   // Resta sin llevadas (el niño aún no las ha estudiado)
@@ -645,7 +981,7 @@ const Games = (function () {
     const ans = a - b;
     return {
       tag: 'restas',
-      steps: [{ tag: 'restas', prompt: `${a} − ${b} = ?`, speak: L(`${a} menos ${b}. ¿Cuánto es?`, `${a} minus ${b}. What is the answer?`), layout: 'num', options: numOptions(ans, [ans + 10, ans - 10, ans + 1, ans - 1], { min: 0 }) }],
+      steps: [{ tag: 'restas', prompt: `${a} − ${b} = ?`, speak: L(`${a} menos ${b}. ¿Cuánto es?`, `${a} minus ${b}. What is the answer?`, `${a} mínus ${b}. Koľko je to?`), layout: 'num', options: numOptions(ans, [ans + 10, ans - 10, ans + 1, ans - 1], { min: 0 }) }],
     };
   }
   function sum3Q(max) {
@@ -659,7 +995,7 @@ const Games = (function () {
     const ans = a + b + c;
     return {
       tag: 'sumas',
-      steps: [{ tag: 'sumas', prompt: `${a} + ${b} + ${c} = ?`, speak: L(`${a} más ${b} más ${c}. ¿Cuánto es?`, `${a} plus ${b} plus ${c}. What is the answer?`), layout: 'num', options: numOptions(ans, [ans + 1, ans - 1, ans + 10, ans - 10], { min: 0 }) }],
+      steps: [{ tag: 'sumas', prompt: `${a} + ${b} + ${c} = ?`, speak: L(`${a} más ${b} más ${c}. ¿Cuánto es?`, `${a} plus ${b} plus ${c}. What is the answer?`, `${a} plus ${b} plus ${c}. Koľko je to?`), layout: 'num', options: numOptions(ans, [ans + 1, ans - 1, ans + 10, ans - 10], { min: 0 }) }],
     };
   }
   function compareQ(max) {
@@ -673,8 +1009,8 @@ const Games = (function () {
       tag: 'comparar',
       steps: [{
         tag: 'comparar',
-        prompt: L(`¿Qué número es ${w}?`, `Which number is ${w}?`),
-        speak: L(`¿Qué número es ${big ? 'mayor' : 'menor'}?`, `Which number is ${big ? 'bigger' : 'smaller'}?`),
+        prompt: L(`¿Qué número es ${w}?`, `Which number is ${w}?`, `Ktoré číslo je ${w}?`),
+        speak: L(`¿Qué número es ${big ? 'mayor' : 'menor'}?`, `Which number is ${big ? 'bigger' : 'smaller'}?`, `Ktoré číslo je ${big ? 'väčšie' : 'menšie'}?`),
         layout: 'num',
         options: shuffle([a, b]).map((v) => ({ html: String(v), correct: v === ans })),
       }],
@@ -684,13 +1020,13 @@ const Games = (function () {
     const half = Math.random() < 0.5;
     const n = rnd(2, max);
     const ans = half ? n : n * 2;
-    const q = half ? L(`La mitad de ${n * 2}`, `Half of ${n * 2}`) : L(`El doble de ${n}`, `Double ${n}`);
+    const q = half ? L(`La mitad de ${n * 2}`, `Half of ${n * 2}`, `Polovica z ${n * 2}`) : L(`El doble de ${n}`, `Double ${n}`, `Dvojnásobok čísla ${n}`);
     return {
       tag: 'dobles',
       steps: [{
         tag: 'dobles',
-        prompt: L(`${q} es...`, `${q} is...`),
-        speak: L(`${q} es... `, `${q} is... `),
+        prompt: L(`${q} es...`, `${q} is...`, `${q} je...`),
+        speak: L(`${q} es... `, `${q} is... `, `${q} je... `),
         layout: 'num',
         options: numOptions(ans, [ans + 1, ans - 1, half ? n * 2 : n], { min: 1 }),
       }],
@@ -700,13 +1036,13 @@ const Games = (function () {
     const n = rnd(11, max);
     const tens = Math.random() < 0.5;
     const ans = tens ? Math.floor(n / 10) : n % 10;
-    const q = tens ? L(`En el número ${n}, ¿cuántas DECENAS hay?`, `In the number ${n}, how many TENS are there?`) : L(`En el número ${n}, ¿cuántas UNIDADES hay?`, `In the number ${n}, how many ONES are there?`);
+    const q = tens ? L(`En el número ${n}, ¿cuántas DECENAS hay?`, `In the number ${n}, how many TENS are there?`, `Koľko DESIATOK je v čísle ${n}?`) : L(`En el número ${n}, ¿cuántas UNIDADES hay?`, `In the number ${n}, how many ONES are there?`, `Koľko JEDNOTIEK je v čísle ${n}?`);
     return {
       tag: 'decenas',
       steps: [{
         tag: 'decenas',
         prompt: q,
-        speak: tens ? L(`En el número ${n}, ¿cuántas decenas hay?`, `In the number ${n}, how many tens are there?`) : L(`En el número ${n}, ¿cuántas unidades hay?`, `In the number ${n}, how many ones are there?`),
+        speak: tens ? L(`En el número ${n}, ¿cuántas decenas hay?`, `In the number ${n}, how many tens are there?`, `Koľko desiatok je v čísle ${n}?`) : L(`En el número ${n}, ¿cuántas unidades hay?`, `In the number ${n}, how many ones are there?`, `Koľko jednotiek je v čísle ${n}?`),
         layout: 'num',
         options: numOptions(ans, [tens ? n % 10 : Math.floor(n / 10), ans + 1, ans - 1], { min: 0 }),
       }],
@@ -716,12 +1052,12 @@ const Games = (function () {
     const n = rnd(2, max - 1);
     const kind = pick(['antes', 'despues', 'entre']);
     let prompt, ans, visual = '';
-    if (kind === 'antes') { prompt = L(`¿Qué número va ANTES del ${n}?`, `Which number comes BEFORE ${n}?`); ans = n - 1; }
-    else if (kind === 'despues') { prompt = L(`¿Qué número va DESPUÉS del ${n}?`, `Which number comes AFTER ${n}?`); ans = n + 1; }
+    if (kind === 'antes') { prompt = L(`¿Qué número va ANTES del ${n}?`, `Which number comes BEFORE ${n}?`, `Ktoré číslo je PRED číslom ${n}?`); ans = n - 1; }
+    else if (kind === 'despues') { prompt = L(`¿Qué número va DESPUÉS del ${n}?`, `Which number comes AFTER ${n}?`, `Ktoré číslo je PO čísle ${n}?`); ans = n + 1; }
     else { prompt = L('¿Qué número va en medio?', 'Which number goes in the middle?'); ans = n; visual = `<div class="series"><span class="chip">${n - 1}</span><span class="chip blank">?</span><span class="chip">${n + 1}</span></div>`; }
     return {
       tag: 'vecinos',
-      steps: [{ tag: 'vecinos', visual, prompt, speak: LANG === 'en' ? prompt : prompt.replace(/[¿?]/g, '') + '?', layout: 'num', options: numOptions(ans, [ans + 1, ans - 1, ans + 2, ans - 2], { min: 0 }) }],
+      steps: [{ tag: 'vecinos', visual, prompt, speak: LANG !== 'es' ? prompt : prompt.replace(/[¿?]/g, '') + '?', layout: 'num', options: numOptions(ans, [ans + 1, ans - 1, ans + 2, ans - 2], { min: 0 }) }],
     };
   }
   function moneyQ(max) {
@@ -735,7 +1071,7 @@ const Games = (function () {
       items.push(v);
       total += v;
     }
-    const chips = items.map((v) => `<span class="chip coin">${L(`${v} €`, `£${v}`)}</span>`).join('');
+    const chips = items.map((v) => `<span class="chip coin">${L(`${v} €`, `£${v}`, `${v} €`)}</span>`).join('');
     return {
       tag: 'dinero',
       steps: [{
@@ -775,8 +1111,8 @@ const Games = (function () {
       tag: 'comparar-visual',
       steps: [{
         tag: 'comparar-visual',
-        prompt: L(`¿Dónde hay ${w}?`, `Where are there ${w}?`),
-        speak: L(`¿Dónde hay ${more ? 'más' : 'menos'}?`, `Where are there ${more ? 'more' : 'fewer'}?`),
+        prompt: L(`¿Dónde hay ${w}?`, `Where are there ${w}?`, `Kde je ${w}?`),
+        speak: L(`¿Dónde hay ${more ? 'más' : 'menos'}?`, `Where are there ${more ? 'more' : 'fewer'}?`, `Kde je ${more ? 'viac' : 'menej'}?`),
         layout: 'groups',
         options: [
           { html: `<span class="grp">${f.e.repeat(a)}</span>`, correct: side === 'a' },
@@ -824,7 +1160,7 @@ const Games = (function () {
     const nes = pr.defaultName;
     Object.defineProperty(pr, 'world', { get: () => L(wes, WORLD_EN[id]), enumerable: true });
     Object.defineProperty(pr, 'defaultName', { get: () => L(nes, NAME_EN[id]), enumerable: true });
-    pr.defaultNames = [nes, NAME_EN[id]];
+    Object.defineProperty(pr, 'defaultNames', { get: () => [nes, NAME_EN[id], SKD[NAME_EN[id]]], enumerable: true });
   });
 
   const EMOJI_POOL = ['🦄', '🐮', '🐷', '🐔', '🐑', '🐴', '🐶', '🐱', '🐰', '🦆', '🐸', '🐘', '🦁', '🐒', '🐢', '🐻', '🦒', '🌈', '🦖', '🦕', '🥚', '🌋', '🦴', '🌴', '🪨', '🔥', '⭐', '🏆', '🪐', '👑', '🦎', '🚀',
@@ -875,8 +1211,8 @@ const Games = (function () {
       const vA = varieties[(z + w * 3) % 8];
       const vB = varieties[(z + w * 3 + 4) % 8];
       const slots = [
-        { t: L(`Sumas hasta ${sMax}`, `Adding up to ${sMax}`), i: '➕', g: () => sumNQ(sMax, carry) },
-        { t: L(`Restas hasta ${sMax}`, `Subtracting up to ${sMax}`), i: '➖', g: () => subNQ(sMax) },
+        { t: L(`Sumas hasta ${sMax}`, `Adding up to ${sMax}`, `Sčítanie do ${sMax}`), i: '➕', g: () => sumNQ(sMax, carry) },
+        { t: L(`Restas hasta ${sMax}`, `Subtracting up to ${sMax}`, `Odčítanie do ${sMax}`), i: '➖', g: () => subNQ(sMax) },
         { t: pl <= 1 ? L('Problemas: ¿más o menos?', 'Problems: more or fewer?') : pl === 2 ? L('Problemas: ¿qué cuenta?', 'Problems: which sum?') : L('Problemas: comparar y total', 'Problems: giving and totals'), i: '🔍', g: () => problemQ(pl), r: 4 },
         { t: vA.t, i: vA.i, g: vA.g },
         z % 2 ? { t: L('Ordena los números', 'Put the numbers in order'), i: '📶', g: () => dragOrderQ(Math.min(oMax, 100), T % 2 === 1), r: 4 } : { t: L('Une cuentas y resultados', 'Match sums and answers'), i: '🔗', g: () => connectMathQ(cm, 3 + (T > 4 ? 1 : 0), 'unir-cuentas'), r: 3 },
@@ -918,7 +1254,7 @@ const Games = (function () {
       const vA = varieties[(z + w * 3) % 8];
       const vB = varieties[(z + w * 3 + 4) % 8];
       const slots = [
-        { t: L(`Cuenta hasta ${cMax}`, `Count up to ${cMax}`), i: '🐮', g: () => countQ(cMax) },
+        { t: L(`Cuenta hasta ${cMax}`, `Count up to ${cMax}`, `Počítaj do ${cMax}`), i: '🐮', g: () => countQ(cMax) },
         { t: L('Busca el grupo', 'Find the group'), i: '🐷', g: () => groupQ(gMax) },
         { t: L('Mete en el cesto', 'Put them in the basket'), i: '🧺', g: () => dragCountQ(dMax), r: 4 },
         { t: vA.t, i: vA.i, g: vA.g, r: vA.r },
@@ -929,7 +1265,7 @@ const Games = (function () {
       ];
       const gens = slots.filter((x) => x.g).map((x) => x.g);
       slots.forEach((x) => list.push(x.pairs ? { title: x.t, icon: x.i, kind: 'memory', pairs: x.pairs, zone: z } : { title: x.t, icon: x.i, rounds: x.r || 5, gen: x.g, zone: z }));
-      list.push({ title: L(`Mezcla de ${ZONES[pid][z]}`, `Mix: ${ZONES[pid][z]}`), icon: '🎲', rounds: 6, gen: () => pick(gens)(), zone: z });
+      list.push({ title: L(`Mezcla de ${ZONES[pid][z]}`, `Mix: ${ZONES[pid][z]}`, `Mix: ${ZONES[pid][z]}`), icon: '🎲', rounds: 6, gen: () => pick(gens)(), zone: z });
       list.push({ title: `${BOSS[pid]} ${ZONES[pid][z]}`, icon: '🎁', rounds: 6, gen: () => pick(gens)(), zone: z, boss: true });
     }
     return list;
@@ -990,12 +1326,12 @@ const Games = (function () {
   Object.keys(SKILL_TXT).forEach((k) => { Object.defineProperty(SKILL_NAMES, k, { get: () => L(SKILL_TXT[k][0], SKILL_TXT[k][1]), enumerable: true }); });
 
   function setLang(l) {
-    LANG = l === 'en' ? 'en' : 'es';
+    LANG = (l === 'en' || l === 'sk') ? l : 'es';
     buildMissions();
   }
   const getLang = () => LANG;
 
-  return { PROFILES, KIDS, ZONES, MISSIONS, RANKS, SKILL_NAMES, ANIMALS, rnd, pick, shuffle, sample, setLang, getLang, L };
+  return { PROFILES, KIDS, ZONES, MISSIONS, RANKS, SKILL_NAMES, ANIMALS, rnd, pick, shuffle, sample, setLang, getLang, L, MISS, SKD, C, nk, nka };
 })();
 
 if (typeof module !== 'undefined') module.exports = Games;
